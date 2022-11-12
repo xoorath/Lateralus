@@ -1,0 +1,13 @@
+{
+    "files.exclude": {
+        "**/generated": true,
+        "**/vs2022": true,
+        "**/ThirdParty": true,
+        "**/.vs": true,
+        "Tools/Shparpmake/obj": true,
+        "Tools/Shparpmake/output": true,
+        "Tools/Shparpmake/properties": true,
+
+    },
+    "search.useIgnoreFiles": false
+}
