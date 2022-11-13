@@ -52,7 +52,8 @@ namespace Lateralus
                 GetConanSettingBuildType,
                 GetConanSettingCompiler,
                 GetConanSettingRuntime,
-                GetConanSettingCompilerVersion,
+                // testing to see if this setting override is forcing compilation failure of our dependancies.
+                //GetConanSettingCompilerVersion,
                 GetConanSettingOS
             })
             {
