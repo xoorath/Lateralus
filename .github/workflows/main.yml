@@ -27,6 +27,12 @@ jobs:
           fetch-depth: 1
           lfs: recursive
           
+      - name: Get Conan
+        uses: turtlebrowser/get-conan@v1.1
+
+      - name: Get Cmake
+        uses: lukka/get-cmake@v3.24.3
+          
       - name: Run Sharpmake.ps1
         run: ./Tools/Powershell/Sharpmake.ps1
         shell: pwsh
