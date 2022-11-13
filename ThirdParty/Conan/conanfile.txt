@@ -1,0 +1,10 @@
+[requires]
+imgui/1.74
+glfw/3.3.8
+glew/2.2.0
+
+[generators]
+json
+
+[options]
+glew:shared=False

@@ -2,8 +2,9 @@
     "files.exclude": {
         "**/generated": true,
         "**/vs2022": true,
-        "**/ThirdParty": true,
+        "**/ThirdParty/Sharpmake": true,
         "**/.vs": true,
+        "Tools/Powershell/tmp":true,
         "Tools/Shparpmake/obj": true,
         "Tools/Shparpmake/output": true,
         "Tools/Shparpmake/properties": true,

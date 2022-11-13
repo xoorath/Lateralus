@@ -4,10 +4,11 @@ param(
     [switch] $Force
 )
 
-$ScriptDir = Split-Path $MyInvocation.MyCommand.Path
-Push-Location $ScriptDir
+$ScriptDir = Split-Path $MyInvocation.MyCommand.Path;
+Push-Location $ScriptDir;
 
-$SharpmakeDir = [System.IO.Path]::Combine($ScriptDir, "..", "..", "ThirdParty", "Sharpmake");
+$ThirdPartyDirectory = [System.IO.Path]::GetFullPath([System.IO.Path]::Combine($ScriptDir, "..", "..", "ThirdParty"));
+$SharpmakeDir = [System.IO.Path]::Combine($ThirdPartyDirectory, "Sharpmake");
 $SharpmakeBootstrap = [System.IO.Path]::Combine($SharpmakeDir, "bootstrap.bat");
 $SharpmakeCompile = [System.IO.Path]::Combine($SharpmakeDir, "CompileSharpmake.bat");
 $SharpmakeSolution = [System.IO.Path]::Combine($SharpmakeDir, "Sharpmake.sln");
@@ -24,7 +25,32 @@ $SharpmakeInputDirectories = @(
     [System.IO.Path]::Combine($ScriptDir, "..", "..", "Applications"),
     [System.IO.Path]::Combine($ScriptDir, "..", "..", "Engine")
 );
-$SharpmakeInputFiles = $SharpmakeInputDirectories | ForEach-Object -Process {((Get-ChildItem -Path $_ -Filter *.Sharpmake.cs -Recurse -File) | ForEach-Object -Process { $_.FullName })} | Resolve-Path -Relative; 
+$SharpmakeInputFiles = [System.Collections.ArrayList]@();
+
+# Add every *.Sharpmake.cs from $SharpmakeInputDirectories
+$SharpmakeFilePaths = ($SharpmakeInputDirectories | ForEach-Object -Process {((Get-ChildItem -Path $_ -Filter *.Sharpmake.cs -Recurse -File) | ForEach-Object -Process { $_.FullName })} | Resolve-Path -Relative);
+if($SharpmakeFilePaths.GetType() -eq [string])
+{
+    $SharpmakeInputFiles.Add($SharpmakeFilePaths);
+}
+else
+{
+    $SharpmakeInputFiles.AddRange($SharpmakeFilePaths);
+}
+
+
+# Add every *.Sharpmake.cs file from the ThirdParty directory except for sharpmake itself.
+$thirdPartySharpmakeFiles = (Get-ChildItem -Path $ThirdPartyDirectory -Filter *.Sharpmake.cs -Recurse -File | ForEach-Object -Process { if(-not (($_.FullName).StartsWith($SharpmakeDir, [StringComparison]::OrdinalIgnoreCase))) { $_.FullName } });
+# If there is only result: $thirdPartySharpmakeFiles will be a string and not an array.
+if($thirdPartySharpmakeFiles.GetType() -eq [string])
+{
+    $SharpmakeInputFiles.Add($thirdPartySharpmakeFiles);
+}
+else
+{
+    $SharpmakeInputFiles.AddRange($thirdPartySharpmakeFiles);
+}
+
 
 if($Force -or -not [System.IO.File]::Exists($SharpmakeSolution))
 {

@@ -4,7 +4,7 @@ namespace Lateralus
 {
     public class LateralusOptionsVs2022 : ILateralusOptions
     {
-        object ILateralusOptions.WarningLevel => Options.Vc.General.WarningLevel.Level3;
+        object ILateralusOptions.WarningLevel => Options.Vc.General.WarningLevel.Level2;
         object ILateralusOptions.TreatWarningsAsErrors => Options.Vc.General.TreatWarningsAsErrors.Enable;
         object ILateralusOptions.CharacterSet => Options.Vc.General.CharacterSet.Unicode;
 

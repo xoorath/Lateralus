@@ -1,4 +1,7 @@
 using Sharpmake;
+using System.Diagnostics;
+using System.IO;
+using System.Reflection;
 
 namespace Lateralus
 {
@@ -20,7 +23,9 @@ namespace Lateralus
         public void ConfigureAll(Configuration conf, Target target)
         {
             conf.SolutionFileName = "[solution.Name]_[target.DevEnv]_[target.Platform]";
-            conf.SolutionPath = @"[solution.SharpmakeCsPath]\..\..\[target.DevEnv]";
+            conf.SolutionPath = @"[solution.SharpmakeCsPath]\..\..\generated";
+
+            Conan.Install(conf, target);
 
             conf.AddProject<HelloWorldProject>(target);
         }
