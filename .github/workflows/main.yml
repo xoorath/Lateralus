@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         configuration: [Debug]
-    runs-on: Windows-2019
+    runs-on: Windows-2022
     steps:
       - name: Export Environment Variables
         run: |
@@ -37,15 +37,15 @@ jobs:
         uses: microsoft/setup-msbuild@v1.1
         with:
           vs-version: 16
-        
-      - name: Get msbuild 17
-        uses: microsoft/setup-msbuild@v1.1
-        with:
-          vs-version: 17
           
       - name: Run Sharpmake.ps1
         run: ./Tools/Powershell/Sharpmake.ps1
         shell: pwsh
+
+      - name: Get msbuild 17
+        uses: microsoft/setup-msbuild@v1.1
+        with:
+          vs-version: 17
 
       - name: Build app for ${{ matrix.configuration }}
         run: msbuild generated\lateralus_vs2022_win64.sln -t:rebuild -verbosity:diag -property:Configuration=${{ matrix.configuration }}
