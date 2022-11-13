@@ -1,0 +1,38 @@
+name: Build and Package
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  package-windows:
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+    runs-on: Windows-2022
+    steps:
+      - name: Export Environment Variables
+        run: |
+          $short_sha=("${{ github.sha }}").substring(0, 7)
+          Add-Content -Path $env:GITHUB_ENV -Value "GITHUB_SHORT_SHA=$short_sha"
+        shell: pwsh
+        
+      - uses: actions/checkout@v3.1.0
+        with:
+          submodules: true
+          fetch-depth: 1
+          lfs: recursive
+          
+      - name: Run Sharpmake.ps1
+        run: ./Tools/Powershell/Sharpmake.ps1
+        shell: pwsh
+        
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.1
+
+      - name: Build app for ${{ matrix.configuration }}
+        run: msbuild generated\lateralus_vs2022_win64.sln -t:rebuild -verbosity:diag -property:Configuration=${{ matrix.configuration }}
