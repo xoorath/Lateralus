@@ -36,12 +36,12 @@ jobs:
       - name: Get msbuild 16
         uses: microsoft/setup-msbuild@v1.1
         with:
-          vs-version: '[16]'
+          vs-version: '16'
         
       - name: Get msbuild 16
         uses: microsoft/setup-msbuild@v1.1
         with:
-          vs-version: '[17]'
+          vs-version: '17'
           
       - name: Run Sharpmake.ps1
         run: ./Tools/Powershell/Sharpmake.ps1
