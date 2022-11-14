@@ -13,20 +13,11 @@ jobs:
   prebuild-windows:
     runs-on: Windows-2022
     steps:
-      - name: Export Environment Variables
-        run: |
-          $short_sha=("${{ github.sha }}").substring(0, 7)
-          $conanfile_path=$GITHUB_WORKSPACE+"BuildSystem/conanfile.txt"
-          Add-Content -Path $env:GITHUB_ENV -Value "GITHUB_SHORT_SHA=$short_sha"
-          Add-Content -Path $env:GITHUB_ENV -Value "CONANFILE_PATH=$conanfile_path"
-          
-        shell: pwsh
-
       - uses: actions/checkout@v3.1.0
         with:
           submodules: true
           fetch-depth: 1
-          lfs: recursive
+          lfs: false
 
       - name: Cache Conan
         id: cache-conan
@@ -56,10 +47,11 @@ jobs:
         run: ./Tools/Powershell/Sharpmake.ps1
         shell: pwsh
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: ${{ runner.os }}-generated
           path: generated/
+          if-no-files-found: error
 
 
   build-windows:
@@ -73,8 +65,8 @@ jobs:
         with:
           submodules: false
           fetch-depth: 1
-          lfs: false
-      - uses: actions/download-artifact@v2
+          lfs: true
+      - uses: actions/download-artifact@v3
         with:
           name: ${{ runner.os }}-generated
           path: generated/
@@ -100,3 +92,7 @@ jobs:
             ${{ runner.os }}-${{ matrix.configuration }}-generated-
       - name: Build app for ${{ matrix.configuration }}
         run: msbuild generated\lateralus_vs2022_win64.sln -t:build -property:Configuration=${{ matrix.configuration }}
+      - name: Delete cross pipeline artifacts
+        uses: geekyeggo/delete-artifact@v2
+        with:
+          name: ${{ runner.os }}-generated
