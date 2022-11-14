@@ -55,11 +55,12 @@ jobs:
       - name: Run Sharpmake.ps1
         run: ./Tools/Powershell/Sharpmake.ps1
         shell: pwsh
-          
-      - name: Get msbuild 17
-        uses: microsoft/setup-msbuild@v1.1
+
+      - uses: actions/upload-artifact@v2
         with:
-          vs-version: 17
+          name: ${{ runner.os }}-generated
+          path: generated/
+          
 
   build-windows:
     runs-on: Windows-2022
@@ -68,12 +69,21 @@ jobs:
         configuration: [Debug, Release]
     needs: prebuild-windows
     steps:
+      - uses: actions/checkout@v3.1.0
+        with:
+          submodules: false
+          fetch-depth: 1
+          lfs: false
+      - uses: actions/download-artifact@v2
+        with:
+          name: ${{ runner.os }}-generated
+          path: generated/
       - name: Cache Generated
         id: cache-generated
         uses: actions/cache@v3
         with:
           path: generated/
-          key: ${{ runner.os }}-${{ matrix.configuration }}-generated-${{ hashFiles('**/**.ixx', '**/**.cpp') }}
+          key: ${{ runner.os }}-${{ matrix.configuration }}-generated-${{ hashFiles('generated/**.vcxproj', 'generated/**.sln') }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.configuration }}-generated-
       - name: Build app for ${{ matrix.configuration }}
