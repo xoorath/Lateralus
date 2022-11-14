@@ -67,6 +67,7 @@ jobs:
       matrix:
         configuration: [Debug, Release]
     needs: prebuild-windows
+    steps:
       - name: Cache Generated
         id: cache-generated
         uses: actions/cache@v3
