@@ -44,7 +44,7 @@ jobs:
           path: ~/.conan
           key: ${{ runner.os }}-${{ matrix.configuration }}-conan-${{ hashFiles('**/conanfile.txt') }}
           restore-keys: |
-            ${{ runner.os }}-${{ matrix.configuration }}-conan-pip-
+            ${{ runner.os }}-${{ matrix.configuration }}-conan-
 
       - name: Run Sharpmake.ps1
         if: steps.cache-conan.outputs.cache-hit != 'true'
