@@ -41,8 +41,10 @@ jobs:
         id: cache-conan
         uses: actions/cache@v3
         with:
-          path: $HOME\.conan\
-          key: conan-${{ hashFiles('$CONANFILE_PATH') }}-${{ matrix.configuration }}
+          path: ~/.conan
+          key: ${{ runner.os }}-${{ matrix.configuration }}-conan-${{ hashFiles("**/conanfile.txt") }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.configuration }}-conan-pip-
 
       - name: Run Sharpmake.ps1
         if: steps.cache-conan.outputs.cache-hit != 'true'
