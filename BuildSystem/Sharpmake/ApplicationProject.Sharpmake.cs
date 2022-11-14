@@ -37,11 +37,13 @@ namespace Lateralus
             conf.SolutionFolder = "Applications";
 
             conf.EventPostBuild.AddRange(new[] {
-
                 $@"if not exist ""$(OutDir)Assets"" mklink /j ""$(OutDir)Assets"" ""{Util.PathMakeStandard(GetCurrentCallingFileInfo().DirectoryName)}/Assets"""
             });
-            
 
+            conf.VcxprojUserFile = new Configuration.VcxprojUserFileSettings()
+            {
+                LocalDebuggerWorkingDirectory = "$(OutDir)"
+            };
         }
 
         private static FileInfo GetCurrentCallingFileInfo()

@@ -25,11 +25,6 @@ namespace Lateralus
             conf.Defines.Add("IMGUI_IMPL_OPENGL_LOADER_GLEW");
             conf.LibraryFiles.Add("opengl32");
 
-            if(conf.VcxprojUserFile != null)
-            {
-                conf.VcxprojUserFile.LocalDebuggerWorkingDirectory = @"[project.SharpmakeCsPath]";
-            }
-
             // Warning C5105 macro expansion producing 'defined' has undefined behavior
             // Disabled because WinBase.h produces this warning.
             conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("5105"));
