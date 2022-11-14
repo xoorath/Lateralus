@@ -51,9 +51,18 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ThirdParty/Sharpmake/tmp
-          key: ${{ runner.os }}-${{ matrix.configuration }}-sharpmake-${{ hashFiles('.git/modules/Tools/Sharpmake/refs/heads/**') }}
+          key: ${{ runner.os }}-${{ matrix.configuration }}-sharpmake-${{ hashFiles('.git/objects/**') }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.configuration }}-sharpmake-
+
+      - name: Cache Generated
+        id: cache-generated
+        uses: actions/cache@v3
+        with:
+          path: generated/
+          key: ${{ runner.os }}-${{ matrix.configuration }}-generated-${{ hashFiles('**.ixx', '**.cpp') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.configuration }}-generated-
 
       - name: Run Sharpmake.ps1
         run: ./Tools/Powershell/Sharpmake.ps1
