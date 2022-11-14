@@ -7,13 +7,13 @@ Tools/Powershell/tmp
 # files generated with sharpmake
 generated/
 vs2022/
-Tools/Sharpmake/*.csproj
-Tools/Sharpmake/*.filters
-Tools/Sharpmake/*.sln
-Tools/Sharpmake/*.vcxproj
-Tools/Sharpmake/obj/
-Tools/Sharpmake/output/
-Tools/Sharpmake/Properties/
+BuildSystem/Sharpmake/*.csproj
+BuildSystem/Sharpmake/*.filters
+BuildSystem/Sharpmake/*.sln
+BuildSystem/Sharpmake/*.vcxproj
+BuildSystem/Sharpmake/obj/
+BuildSystem/Sharpmake/output/
+BuildSystem/Sharpmake/Properties/
 
 #########################################################################################
 ## Ignore Visual Studio temporary files, build results, and

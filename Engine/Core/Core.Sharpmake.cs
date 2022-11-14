@@ -10,7 +10,6 @@ namespace Lateralus
         public CoreProject()
             : base()
         {
-            SourceRootPath = @"[project.SharpmakeCsPath]";
         }
     }
 }

@@ -53,6 +53,5 @@ namespace Lateralus
             }
             throw new LateralusError("error in Lateralus.ConanProject.GetCurrentCallingFileInfo()");
         }
-
     }
 }

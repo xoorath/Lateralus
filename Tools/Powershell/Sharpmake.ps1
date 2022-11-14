@@ -4,84 +4,134 @@ param(
     [switch] $Force
 )
 
+# /Tools/Powershell
 $ScriptDir = Split-Path $MyInvocation.MyCommand.Path;
 Push-Location $ScriptDir;
 
-$ThirdPartyDirectory = [System.IO.Path]::GetFullPath([System.IO.Path]::Combine($ScriptDir, "..", "..", "ThirdParty"));
-$SharpmakeDir = [System.IO.Path]::Combine($ThirdPartyDirectory, "Sharpmake");
-$SharpmakeBootstrap = [System.IO.Path]::Combine($SharpmakeDir, "bootstrap.bat");
-$SharpmakeCompile = [System.IO.Path]::Combine($SharpmakeDir, "CompileSharpmake.bat");
-$SharpmakeSolution = [System.IO.Path]::Combine($SharpmakeDir, "Sharpmake.sln");
-$SharpmakeConfiguration = "release";
-if($Debug)
+function GetSharpmakeFilesFromDirectory
 {
-    $SharpmakeConfiguration = "debug";
+    Param(
+        [parameter(Mandatory=$true)]
+        [System.Collections.ArrayList]
+        $Directories, 
+        
+        [System.Collections.ArrayList]
+        $ExcludeDirectories
+    )
+
+    $results = New-Object System.Collections.ArrayList;
+    foreach($dir in $Directories)
+    {
+        $files = New-Object System.Collections.ArrayList;
+        $gciResult = (Get-ChildItem -Path $dir -Filter *.Sharpmake.cs -Recurse -File);
+        if($null -eq $gciResult)
+        {
+            continue;
+        }
+        if($gciResult.GetType() -eq [System.IO.FileInfo])
+        {
+            [void]$files.Add($gciResult);
+        }
+        else
+        {
+            [void]$files.AddRange($gciResult);
+        }
+        foreach($file in $files)
+        {
+            $isExcluded = $false;
+            foreach($excluded in $ExcludeDirectories)
+            {
+                if($file.FullName.StartsWith($excluded))
+                {
+                    $isExcluded = $true;
+                    break;
+                }
+            }
+            if(-not $isExcluded) {
+                [void]$results.Add([string]($file.FullName | Resolve-Path -Relative) );
+            }
+        }
+    }
+
+    return ,$results
 }
+
+function GetSourcesParam
+{
+    [OutputType([string])]
+    Param(
+        [parameter(Mandatory=$true)]
+        [System.Collections.ArrayList]
+        $SharpmakeFiles 
+    )
+
+    $SharpmakeFiles = ($SharpmakeFiles | ForEach-Object -Process { return $_.Replace("\", "/"); });
+    $SharpmakeFiles = ($SharpmakeFiles | ForEach-Object -Process { return [string]::Format("'{0}'", $_); });
+    
+    return [string]::Format("/sources({0})", ($SharpmakeFiles -join ','));
+}
+
+# /
+$ProjectRootDir = [System.IO.Path]::GetFullPath([System.IO.Path]::Combine($ScriptDir, "..", ".."));
+# /generated
+$GeneratedDir = [System.IO.Path]::GetFullPath([System.IO.Path]::Combine($ProjectRoot, "generated"));
+# /generated
+$DebugSlnPath = $GeneratedDir;
+# /BuildSystem
+$BuildSystemDir = [System.IO.Path]::GetFullPath([System.IO.Path]::Combine($ProjectRootDir, "BuildSystem"));
+# /ThirdParty
+$ThirdPartyDir = [System.IO.Path]::GetFullPath([System.IO.Path]::Combine($ProjectRootDir, "ThirdParty"));
+# /ThirdParty/Sharpmake
+$SharpmakeDir = [System.IO.Path]::Combine($ThirdPartyDir, "Sharpmake");
+# /ThirdParty/Sharpmake/bootstrap.bat
+$SharpmakeBootstrap = [System.IO.Path]::Combine($SharpmakeDir, "bootstrap.bat");
+# /ThirdParty/Sharpmake/CompileSharpmake.bat
+$SharpmakeCompile = [System.IO.Path]::Combine($SharpmakeDir, "CompileSharpmake.bat");
+# /ThirdParty/Sharpmake/Sharpmake.sln
+$SharpmakeSolution = [System.IO.Path]::Combine($SharpmakeDir, "Sharpmake.sln");
+
+$SharpmakeConfiguration = If($Debug) {"Debug"} else {"release"};
+# /ThirdParty/Sharpmake/tmp/bin/{config}/net6.0/SharpMake.Application.exe
 $SharpmakeApplication = [System.IO.Path]::Combine($SharpmakeDir, "tmp", "bin", $SharpmakeConfiguration, "net6.0", "SharpMake.Application.exe");
 
-# inputs to sharpmake
+# input sharpmake file directories
 $SharpmakeInputDirectories = @(
-    [System.IO.Path]::Combine($ScriptDir, "..", "Sharpmake"),
-    [System.IO.Path]::Combine($ScriptDir, "..", "..", "Applications"),
-    [System.IO.Path]::Combine($ScriptDir, "..", "..", "Engine")
+    $BuildSystemDir,
+    [System.IO.Path]::Combine($ProjectRootDir, "Applications"),
+    [System.IO.Path]::Combine($ProjectRootDir, "Engine")
 );
-$SharpmakeInputFiles = [System.Collections.ArrayList]@();
+# Directories to ignore when searching for sharpmake files.
+$SharpmakeExcludeDirectories = New-Object System.Collections.ArrayList;
 
 # Add every *.Sharpmake.cs from $SharpmakeInputDirectories
-$SharpmakeFilePaths = ($SharpmakeInputDirectories | ForEach-Object -Process {((Get-ChildItem -Path $_ -Filter *.Sharpmake.cs -Recurse -File) | ForEach-Object -Process { $_.FullName })} | Resolve-Path -Relative);
-if($SharpmakeFilePaths.GetType() -eq [string])
-{
-    $SharpmakeInputFiles.Add($SharpmakeFilePaths);
-}
-else
-{
-    $SharpmakeInputFiles.AddRange($SharpmakeFilePaths);
-}
-
-
-# Add every *.Sharpmake.cs file from the ThirdParty directory except for sharpmake itself.
-$thirdPartySharpmakeFiles = (Get-ChildItem -Path $ThirdPartyDirectory -Filter *.Sharpmake.cs -Recurse -File | ForEach-Object -Process { if(-not (($_.FullName).StartsWith($SharpmakeDir, [StringComparison]::OrdinalIgnoreCase))) { $_.FullName } });
-# If there is only result: $thirdPartySharpmakeFiles will be a string and not an array.
-if($thirdPartySharpmakeFiles.GetType() -eq [string])
-{
-    $SharpmakeInputFiles.Add($thirdPartySharpmakeFiles);
-}
-else
-{
-    $SharpmakeInputFiles.AddRange($thirdPartySharpmakeFiles);
-}
-
+$SharpmakeInputFiles = (GetSharpmakeFilesFromDirectory -Directories $SharpmakeInputDirectories -ExcludeDirectories $SharpmakeExcludeDirectories);
 
 if($Force -or -not [System.IO.File]::Exists($SharpmakeSolution))
 {
     &$SharpmakeBootstrap
-}
-else
-{
-    Write-Host "Skipping sharpmake bootstrap.";
 }
 
 if($Force -or -not [System.IO.File]::Exists($SharpmakeApplication))
 {
     &$SharpmakeCompile @("""$SharpmakeSolution""", """$SharpmakeConfiguration""", """Any CPU""")
 }
-else
-{
-    Write-Host "Skipping sharpmake compile.";
-}
 
 $SharpmakeParams = [System.Collections.ArrayList]@(
-    [string]::Format("/sources({0})", [string]::Join(",", ($SharpmakeInputFiles | ForEach-Object -Process { return [string]::Format("@'{0}'", $_.Replace("\", "/")  ); })))
+    (GetSourcesParam -SharpmakeFiles $SharpmakeInputFiles)
 );
 
 if($Debug)
 {
-    $SharpmakeParams.Add("/generateDebugSolution");  
+    [void]$SharpmakeParams.Add("/generateDebugSolution");
+    New-Item -ItemType Directory -Force -Path $DebugSlnPath
+    $DebugSlnPath = $DebugSlnPath | Resolve-Path -Relative;
+    $DebugSlnPath = $DebugSlnPath.Replace("\", "/");
+    [void]$SharpmakeParams.Add("/debugSolutionPath('$DebugSlnPath')");
 }
 
 if($Verbose)
 {
-    $SharpmakeParams.Add("/verbose");
+    [void]$SharpmakeParams.Add("/verbose");
 }
 
 &$SharpmakeApplication $SharpmakeParams

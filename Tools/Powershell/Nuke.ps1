@@ -27,15 +27,8 @@ foreach($dir in (Get-ChildItem $ProjectRoot -Recurse -Directory | Where-Object {
 Remove-Item -Path ([System.IO.Path]::Combine($ProjectRoot, "Tools", "Powershell", "tmp")) -Force -Recurse -ErrorAction SilentlyContinue
 
 # Delete the sharpmake build directories and solution
-Remove-Item -Path ([System.IO.Path]::Combine($ProjectRoot, "ThirdParty", "Sharpmake", "tmp")) -Force -Recurse -ErrorAction SilentlyContinue
-Remove-Item -Path ([System.IO.Path]::Combine($ProjectRoot, "ThirdParty",  "Sharpmake", "Sharpmake.sln")) -Force -ErrorAction SilentlyContinue
-
-# Delete debug solution and it's output
-Remove-Item -Path ([System.IO.Path]::Combine($ProjectRoot, "Tools",  "Sharpmake", "obj")) -Force -Recurse -ErrorAction SilentlyContinue
-Remove-Item -Path ([System.IO.Path]::Combine($ProjectRoot, "Tools",  "Sharpmake", "output")) -Force -Recurse -ErrorAction SilentlyContinue
-Remove-Item -Path ([System.IO.Path]::Combine($ProjectRoot, "Tools",  "Sharpmake", "properties")) -Force -Recurse -ErrorAction SilentlyContinue
-Remove-Item -Path ([System.IO.Path]::Combine($ProjectRoot, "Tools",  "Sharpmake", "sharpmake_debugsolution.vs2022.sln")) -Force -ErrorAction SilentlyContinue
-Remove-Item -Path ([System.IO.Path]::Combine($ProjectRoot, "Tools",  "Sharpmake", "sharpmake_debug.vs2022.csproj")) -Force -ErrorAction SilentlyContinue
+Remove-Item -Path ([System.IO.Path]::Combine($ProjectRoot, "BuildSystem", "Sharpmake", "tmp")) -Force -Recurse -ErrorAction SilentlyContinue
+Remove-Item -Path ([System.IO.Path]::Combine($ProjectRoot, "BuildSystem",  "Sharpmake", "Sharpmake.sln")) -Force -ErrorAction SilentlyContinue
 
 # Delete all imgui.ini files
 foreach($dir in (Get-ChildItem $ProjectRoot -Recurse -File | Where-Object {$_.name -like "imgui.ini"} | ForEach-Object { $_.fullname }))

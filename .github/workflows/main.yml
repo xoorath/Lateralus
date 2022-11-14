@@ -12,7 +12,7 @@ jobs:
   package-windows:
     strategy:
       matrix:
-        configuration: [Debug]
+        configuration: [Debug, Release]
     runs-on: Windows-2022
     steps:
       - name: Export Environment Variables
@@ -32,11 +32,6 @@ jobs:
 
       - name: Get Cmake
         uses: lukka/get-cmake@v3.24.3
-          
-      - name: Get msbuild 16
-        uses: microsoft/setup-msbuild@v1.1
-        with:
-          vs-version: 16
           
       - name: Run Sharpmake.ps1
         run: ./Tools/Powershell/Sharpmake.ps1

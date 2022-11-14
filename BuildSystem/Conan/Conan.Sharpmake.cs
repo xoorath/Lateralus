@@ -30,13 +30,14 @@ namespace Lateralus
 
             string conanfileDir = Path.GetFullPath(Path.Combine(
                 lateralusRootDir,
-                "ThirdParty",
+                "BuildSystem",
                 "conan"
             ));
 
             const string conanBuildInfoFileName = "conanbuildinfo.json";
             string conanBuildInfoFilePath = Path.GetFullPath(Path.Combine(conanGeneratedDir, conanBuildInfoFileName));
 
+            string cwd = Directory.GetCurrentDirectory();
 
             ProcessStartInfo startInfo = new ProcessStartInfo();
             startInfo.CreateNoWindow = false;
@@ -52,8 +53,6 @@ namespace Lateralus
                 GetConanSettingBuildType,
                 GetConanSettingCompiler,
                 GetConanSettingRuntime,
-                // testing to see if this setting override is forcing compilation failure of our dependancies.
-                //GetConanSettingCompilerVersion,
                 GetConanSettingOS
             })
             {
@@ -71,22 +70,31 @@ namespace Lateralus
 
             // Start the process with the info we specified.
             // Call WaitForExit and then the using statement will close.
-            using (Process exeProcess = Process.Start(startInfo))
+            try
             {
-                exeProcess.WaitForExit();
-                if (exeProcess.ExitCode != 0)
+                using (Process exeProcess = Process.Start(startInfo))
                 {
-                    throw new LateralusError("Conan reported errors while running install");
+                    exeProcess.WaitForExit();
+                    if (exeProcess.ExitCode != 0)
+                    {
+                        throw new LateralusError("Conan reported errors while running install");
+                    }
+                }
+
+                if (!File.Exists(conanBuildInfoFilePath))
+                {
+                    throw new LateralusError($@"Conan didn't produce a {conanBuildInfoFileName}");
                 }
             }
-
-            if(!File.Exists(conanBuildInfoFilePath))
+            catch
             {
-                throw new LateralusError($@"Conan didn't produce a {conanBuildInfoFileName}");
+                throw;
             }
-
-            
-
+            finally
+            {
+                string changedcwd = Directory.GetCurrentDirectory();
+                Directory.SetCurrentDirectory(cwd);
+            }
         }
 
         private delegate string SettingProvider(Configuration conf, Target target);
@@ -150,17 +158,6 @@ namespace Lateralus
             {
                 return $@"{var}=MT";
             }
-        }
-
-        private static string GetConanSettingCompilerVersion(Configuration conf, Target target)
-        {
-            const string var = "compiler.version";
-            switch(target.DevEnv)
-            {
-                case DevEnv.vs2019: return $@"{var}=15";
-                case DevEnv.vs2022: return $@"{var}=16";
-            }
-            throw new LateralusError($@"Sharpmake devenv '{target.DevEnv.ToString()}' not yet mapped to conan {var} for target {target.Name}.");
         }
 
         private static string GetConanSettingOS(Configuration conf, Target target)

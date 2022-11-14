@@ -10,7 +10,6 @@ namespace Lateralus
         public HelloWorldProject()
             : base()
         {
-            SourceRootPath = @"[project.SharpmakeCsPath]";
         }
 
         public override void ConfigureAll(Configuration conf, Target target)
