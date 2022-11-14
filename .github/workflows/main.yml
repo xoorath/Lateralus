@@ -28,12 +28,6 @@ jobs:
           fetch-depth: 1
           lfs: recursive
 
-      - name: Get Conan
-        uses: turtlebrowser/get-conan@v1.1
-
-      - name: Get Cmake
-        uses: lukka/get-cmake@v3.24.3
-
       - name: Cache Conan
         id: cache-conan
         uses: actions/cache@v3
@@ -51,6 +45,12 @@ jobs:
           key: ${{ runner.os }}-sharpmake-${{ hashFiles( 'ThirdParty/**/*.cs') }}
           restore-keys: |
             ${{ runner.os }}-sharpmake-
+            
+      - name: Get Conan
+        uses: turtlebrowser/get-conan@v1.1
+
+      - name: Get Cmake
+        uses: lukka/get-cmake@v3.24.3
 
       - name: Run Sharpmake.ps1
         run: ./Tools/Powershell/Sharpmake.ps1
@@ -61,10 +61,6 @@ jobs:
           name: ${{ runner.os }}-generated
           path: generated/
 
-      - uses: actions/upload-artifact@v2
-        with:
-          name: ${{ runner.os }}-conan
-          path: ~/.conan
 
   build-windows:
     runs-on: Windows-2022
@@ -82,10 +78,14 @@ jobs:
         with:
           name: ${{ runner.os }}-generated
           path: generated/
-      - uses: actions/download-artifact@v2
+      - name: Cache Conan
+        id: cache-conan
+        uses: actions/cache@v3
         with:
-          name: ${{ runner.os }}-conan
           path: ~/.conan
+          key: ${{ runner.os }}-conan-${{ hashFiles('**/conanfile.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-conan-
       - name: setup-msbuild
         uses: microsoft/setup-msbuild@v1.1.3
         with:
