@@ -47,7 +47,6 @@ jobs:
             ${{ runner.os }}-${{ matrix.configuration }}-conan-
 
       - name: Run Sharpmake.ps1
-        if: steps.cache-conan.outputs.cache-hit != 'true'
         run: ./Tools/Powershell/Sharpmake.ps1
         shell: pwsh
           
