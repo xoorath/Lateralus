@@ -30,7 +30,7 @@ jobs:
           submodules: true
           fetch-depth: 1
           lfs: recursive
-          
+
       - name: Get Conan
         uses: turtlebrowser/get-conan@v1.1
 

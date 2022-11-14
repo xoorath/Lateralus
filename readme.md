@@ -1,3 +1,5 @@
+[![Build and Package](https://github.com/xoorath/Lateralus/actions/workflows/main.yml/badge.svg)](https://github.com/xoorath/Lateralus/actions/workflows/main.yml)
+
 # Prerequisites
 
 - The [conan](conan.io/downloads.html) package manager.
