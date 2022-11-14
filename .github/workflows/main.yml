@@ -42,7 +42,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: $HOME\.conan\
-          key: ${{ format('conan-{0}-{1}', hashFiles($CONANFILE_PATH),  matrix.configuration}}
+          key: conan-${{ hashFiles($CONANFILE_PATH) }}-${{ matrix.configuration }}
 
       - name: Run Sharpmake.ps1
         if: steps.cache-conan.outputs.cache-hit != 'true'
