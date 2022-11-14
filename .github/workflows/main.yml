@@ -51,7 +51,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ThirdParty/Sharpmake/tmp
-          key: ${{ runner.os }}-${{ matrix.configuration }}-sharpmake-${{ hashFiles('.git/objects/**') }}
+          key: ${{ runner.os }}-${{ matrix.configuration }}-sharpmake-${{ hashFiles('ThirdParty/Sharpmake/**.cs') }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.configuration }}-sharpmake-
 
