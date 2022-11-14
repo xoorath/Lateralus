@@ -46,6 +46,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ matrix.configuration }}-conan-
 
+      - name: Cache Sharpmake
+        id: cache-sharpmake
+        uses: actions/cache@v3
+        with:
+          path: ThirdParty/Sharpmake/tmp
+          key: ${{ runner.os }}-${{ matrix.configuration }}-sharpmake-${{ hashFiles('.git/modules/Tools/Sharpmake/refs/heads/**') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.configuration }}-sharpmake-
+
       - name: Run Sharpmake.ps1
         run: ./Tools/Powershell/Sharpmake.ps1
         shell: pwsh
