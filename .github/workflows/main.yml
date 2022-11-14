@@ -52,15 +52,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-sharpmake-
 
-      - name: Cache Generated
-        id: cache-generated
-        uses: actions/cache@v3
-        with:
-          path: generated/
-          key: ${{ runner.os }}-generated-${{ hashFiles('**/**.ixx', '**/**.cpp') }}
-          restore-keys: |
-            ${{ runner.os }}-generated-
-
       - name: Run Sharpmake.ps1
         run: ./Tools/Powershell/Sharpmake.ps1
         shell: pwsh
@@ -73,11 +64,27 @@ jobs:
   build-windows-debug:
     runs-on: Windows-2022
     needs: prebuild-windows
+      - name: Cache Generated
+        id: cache-generated
+        uses: actions/cache@v3
+        with:
+          path: generated/
+          key: ${{ runner.os }}-debug-generated-${{ hashFiles('**/**.ixx', '**/**.cpp') }}
+          restore-keys: |
+            ${{ runner.os }}-debug-generated-
       - name: Build app for Debug
         run: msbuild generated\lateralus_vs2022_win64.sln -t:build -property:Configuration=Debug
 
   build-windows-debug:
     runs-on: Windows-2022
     needs: prebuild-windows
+      - name: Cache Generated
+        id: cache-generated
+        uses: actions/cache@v3
+        with:
+          path: generated/
+          key: ${{ runner.os }}-release-generated-${{ hashFiles('**/**.ixx', '**/**.cpp') }}
+          restore-keys: |
+            ${{ runner.os }}-release-generated-
       - name: Build app for Debug
         run: msbuild generated\lateralus_vs2022_win64.sln -t:build -property:Configuration=Debug
