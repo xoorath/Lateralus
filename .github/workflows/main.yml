@@ -51,7 +51,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ThirdParty/Sharpmake/tmp
-          key: ${{ runner.os }}-${{ matrix.configuration }}-sharpmake-${{ hashFiles('ThirdParty/Sharpmake/**/*.cs') }}
+          key: ${{ runner.os }}-${{ matrix.configuration }}-sharpmake-${{ hashFiles(github.workspace+'/ThirdParty/Sharpmake/*.cs') }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.configuration }}-sharpmake-
 
@@ -60,7 +60,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: generated/
-          key: ${{ runner.os }}-${{ matrix.configuration }}-generated-${{ hashFiles('**.ixx', '**.cpp') }}
+          key: ${{ runner.os }}-${{ matrix.configuration }}-generated-${{ hashFiles(github.workspace+'/**/*.ixx', github.workspace+'/**/*.cpp') }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.configuration }}-generated-
 
