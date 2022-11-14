@@ -17,7 +17,7 @@ namespace Lateralus
         {
             Name = ProjectName;
 
-            // [project.SharpMakeCsPath] can't be used because it would identify the this file's path.
+            // [project.SharpMakeCsPath] can't be used because it would identify this file's path.
             SourceRootPath = Util.PathMakeStandard(GetCurrentCallingFileInfo().DirectoryName);
         }
 
@@ -35,6 +35,13 @@ namespace Lateralus
 
             // Decorative configuration
             conf.SolutionFolder = "Applications";
+
+            conf.EventPostBuild.AddRange(new[] {
+
+                $@"if not exist ""$(OutDir)Assets"" mklink /j ""$(OutDir)Assets"" ""{Util.PathMakeStandard(GetCurrentCallingFileInfo().DirectoryName)}/Assets"""
+            });
+            
+
         }
 
         private static FileInfo GetCurrentCallingFileInfo()

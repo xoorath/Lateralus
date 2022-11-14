@@ -26,6 +26,14 @@ namespace Lateralus
 
             // Add sharpmake extension to the project (for quick editing: not used in compilation).
             SourceFilesExtensions.Add(".cs");
+
+            // Add asset file types:
+            SourceFilesExtensions.AddRange(new[] { 
+                // todo: add other asset types we might want to see in visual studio.
+                ".fs", 
+                ".vs",
+                ".png"
+            });
         }
 
 
