@@ -61,30 +61,19 @@ jobs:
         with:
           vs-version: 17
 
-  build-windows-debug:
+  build-windows:
     runs-on: Windows-2022
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
     needs: prebuild-windows
       - name: Cache Generated
         id: cache-generated
         uses: actions/cache@v3
         with:
           path: generated/
-          key: ${{ runner.os }}-debug-generated-${{ hashFiles('**/**.ixx', '**/**.cpp') }}
+          key: ${{ runner.os }}-${{ matrix.configuration }}-generated-${{ hashFiles('**/**.ixx', '**/**.cpp') }}
           restore-keys: |
-            ${{ runner.os }}-debug-generated-
-      - name: Build app for Debug
-        run: msbuild generated\lateralus_vs2022_win64.sln -t:build -property:Configuration=Debug
-
-  build-windows-debug:
-    runs-on: Windows-2022
-    needs: prebuild-windows
-      - name: Cache Generated
-        id: cache-generated
-        uses: actions/cache@v3
-        with:
-          path: generated/
-          key: ${{ runner.os }}-release-generated-${{ hashFiles('**/**.ixx', '**/**.cpp') }}
-          restore-keys: |
-            ${{ runner.os }}-release-generated-
-      - name: Build app for Debug
-        run: msbuild generated\lateralus_vs2022_win64.sln -t:build -property:Configuration=Debug
+            ${{ runner.os }}-${{ matrix.configuration }}-generated-
+      - name: Build app for ${{ matrix.configuration }}
+        run: msbuild generated\lateralus_vs2022_win64.sln -t:build -property:Configuration=${{ matrix.configuration }}
