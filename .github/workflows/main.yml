@@ -60,7 +60,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: generated/
-          key: ${{ runner.os }}-${{ matrix.configuration }}-generated-${{ hashFiles('/**/*.ixx', '/**/*.cpp') }}
+          key: ${{ runner.os }}-${{ matrix.configuration }}-generated-${{ hashFiles('**/*.ixx', '**/*.cpp') }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.configuration }}-generated-
 
