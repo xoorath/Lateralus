@@ -10,10 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  package-windows:
-    strategy:
-      matrix:
-        configuration: [Debug, Release]
+  prebuild-windows:
     runs-on: Windows-2022
     steps:
       - name: Export Environment Variables
@@ -42,27 +39,27 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.conan
-          key: ${{ runner.os }}-${{ matrix.configuration }}-conan-${{ hashFiles('**/conanfile.txt') }}
+          key: ${{ runner.os }}-conan-${{ hashFiles('**/conanfile.txt') }}
           restore-keys: |
-            ${{ runner.os }}-${{ matrix.configuration }}-conan-
+            ${{ runner.os }}-conan-
 
       - name: Cache Sharpmake
         id: cache-sharpmake
         uses: actions/cache@v3
         with:
           path: ThirdParty/Sharpmake/tmp
-          key: ${{ runner.os }}-${{ matrix.configuration }}-sharpmake-${{ hashFiles( 'ThirdParty/**/*.cs') }}
+          key: ${{ runner.os }}-sharpmake-${{ hashFiles( 'ThirdParty/**/*.cs') }}
           restore-keys: |
-            ${{ runner.os }}-${{ matrix.configuration }}-sharpmake-
+            ${{ runner.os }}-sharpmake-
 
       - name: Cache Generated
         id: cache-generated
         uses: actions/cache@v3
         with:
           path: generated/
-          key: ${{ runner.os }}-${{ matrix.configuration }}-generated-${{ hashFiles('**/**.ixx', '**/**.cpp') }}
+          key: ${{ runner.os }}-generated-${{ hashFiles('**/**.ixx', '**/**.cpp') }}
           restore-keys: |
-            ${{ runner.os }}-${{ matrix.configuration }}-generated-
+            ${{ runner.os }}-generated-
 
       - name: Run Sharpmake.ps1
         run: ./Tools/Powershell/Sharpmake.ps1
@@ -73,5 +70,14 @@ jobs:
         with:
           vs-version: 17
 
-      - name: Build app for ${{ matrix.configuration }}
-        run: msbuild generated\lateralus_vs2022_win64.sln -t:build -property:Configuration=${{ matrix.configuration }}
+  build-windows-debug:
+    runs-on: Windows-2022
+    needs: prebuild-windows
+      - name: Build app for Debug
+        run: msbuild generated\lateralus_vs2022_win64.sln -t:build -property:Configuration=Debug
+
+  build-windows-debug:
+    runs-on: Windows-2022
+    needs: prebuild-windows
+      - name: Build app for Debug
+        run: msbuild generated\lateralus_vs2022_win64.sln -t:build -property:Configuration=Debug
