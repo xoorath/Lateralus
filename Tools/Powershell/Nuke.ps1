@@ -17,6 +17,9 @@ if (Prompt("Nuke?", "This script will delete all generated files in the project.
 
 $ProjectRoot = [System.IO.Path]::GetFullPath([System.IO.Path]::Combine($ScriptDir, "..", ".."));
 
+$OldErrorActionPreference = $ErrorActionPreference
+$ErrorActionPreference = "SilentlyContinue"
+
 # Delete all generated folders
 foreach($dir in (Get-ChildItem $ProjectRoot -Recurse -Directory | Where-Object {$_.name -like "generated"} | ForEach-Object { $_.fullname }))
 {
@@ -35,5 +38,7 @@ foreach($dir in (Get-ChildItem $ProjectRoot -Recurse -File | Where-Object {$_.na
 {
     Remove-Item -Path $dir -Force -ErrorAction SilentlyContinue
 }
+
+$ErrorActionPreference = $OldErrorActionPreference
 
 Pop-Location #$ScriptDir

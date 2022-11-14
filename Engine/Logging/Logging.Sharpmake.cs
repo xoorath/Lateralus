@@ -3,11 +3,11 @@ using Sharpmake;
 namespace Lateralus
 {
     [Generate]
-    public class CoreProject : EngineProject
+    public class LoggingProject : EngineProject
     {
-        public override string ProjectName => "Core";
+        public override string ProjectName => "Logging";
 
-        public CoreProject()
+        public LoggingProject()
             : base()
         {
         }

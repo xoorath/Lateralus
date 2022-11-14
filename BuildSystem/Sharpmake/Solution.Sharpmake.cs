@@ -28,6 +28,9 @@ namespace Lateralus
             Conan.Install(conf, target);
 
             conf.AddProject<HelloWorldProject>(target);
+            conf.AddProject<CoreProject>(target);
+            conf.AddProject<PlatformProject>(target);
+            conf.AddProject<LoggingProject>(target);
         }
     }
 }

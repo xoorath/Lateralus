@@ -27,7 +27,10 @@ namespace Lateralus
 
             // Warning C5105 macro expansion producing 'defined' has undefined behavior
             // Disabled because WinBase.h produces this warning.
-            conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("5105"));
+            conf.Options.Add(new Options.Vc.Compiler.DisableSpecificWarnings("5105"));
+
+            // to limit to one graph.
+            conf.DumpDependencyGraph = target.Optimization.HasFlag(Optimization.Debug);
         }
     }
 }

@@ -12,11 +12,14 @@
 // Include glfw3.h after our OpenGL definitions
 #include <GLFW/glfw3.h>
 
+#include "Logging.h"
+
 #define PI 3.14159265358979323846
 
 static void glfw_error_callback(int error, const char *description)
 {
-	fprintf(stderr, "Glfw Error %d: %s\n", error, description);
+	LATERALUS_LOG("{}: {}", error, description);
+	//fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
 void render_conan_logo()
@@ -102,7 +105,8 @@ int main(int, char **)
 
 	if (err)
 	{
-		fprintf(stderr, "Failed to initialize OpenGL loader!\n");
+		LATERALUS_LOG("Failed to initialize OpenGL loader!");
+
 		return 1;
 	}
 

@@ -30,8 +30,9 @@ namespace Lateralus
             conf.Output = Configuration.OutputType.Exe;
 
             // Dependancy configuration
-            conf.AddPrivateDependency<CoreProject>(target);
-            conf.AddPrivateDependency<PlatformProject>(target);
+            conf.AddPublicDependency<CoreProject>(target);
+            conf.AddPublicDependency<PlatformProject>(target);
+            conf.AddPublicDependency<LoggingProject>(target);
 
             // Decorative configuration
             conf.SolutionFolder = "Applications";
@@ -46,7 +47,7 @@ namespace Lateralus
             };
         }
 
-        private static FileInfo GetCurrentCallingFileInfo()
+        private FileInfo GetCurrentCallingFileInfo()
         {
             const int depth = 2;
             StackTrace stackTrace = new StackTrace(true);
@@ -57,10 +58,15 @@ namespace Lateralus
                 if (method.DeclaringType == typeof(ApplicationProject))
                 {
                     stackFrame = stackTrace.GetFrame(i + depth);
-                    return new FileInfo(stackFrame.GetFileName());
+                    string filename = stackFrame.GetFileName();
+                    if(string.IsNullOrEmpty(filename))
+                    {
+                        throw new LateralusError($@"Is {Name} missing ConfigureAll? error in Lateralus.ApplicationProject.GetCurrentCallingFileInfo()");
+                    }
+                    return new FileInfo(filename);
                 }
             }
-            throw new LateralusError("error in Lateralus.ConanProject.GetCurrentCallingFileInfo()");
+            throw new LateralusError("error in Lateralus.ApplicationProject.GetCurrentCallingFileInfo()");
         }
     }
 }

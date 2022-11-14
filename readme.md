@@ -21,7 +21,7 @@ Each command should cleanly print the version without error. If they don't: chec
 
 # Building
 
-Run `./Tools/Powershell/Sharpmake.ps1` in powershell. This will create a solution under `./vs2022`
+Run `./Tools/Powershell/Sharpmake.ps1` in powershell. This will create a solution under `./generated`
 Open the solution in visual studio and build.
 
 # Conan
@@ -39,11 +39,11 @@ To generate the solution run `./Tools/Powershell/Sharpmake.ps1`.
 
 [Sharpmake.ps1](./Tools/Powershell/Sharpmake.ps1) has a few optional parameters:
 
-| Parameter | Description                                                                                                                                              |
-|-----------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| -Verbose  | Produce more detailed output from sharpmake.                                                                                                             |
-| -Debug    | Build the debug variant of sharpmake. Also create a solution for debugging sharpmake generation at `/BuildSystem/Sharpmake/sharpmake_debugsolution.vs2022.sln` |
-| -Force    | Re-build sharpmake itself even if it already exists. (useful when updating the sharpmake module)                                                         |
+| Parameter | Description                                                                                                                                        |
+|-----------|----------------------------------------------------------------------------------------------------------------------------------------------------|
+| -Verbose  | Produce more detailed output from sharpmake.                                                                                                       |
+| -Debug    | Build the debug variant of sharpmake. Also create a solution for debugging sharpmake generation at `/generated/sharpmake_debugsolution.vs2022.sln` |
+| -Force    | Re-build sharpmake itself even if it already exists. (useful when updating the sharpmake module)                                                   |
 
 ## New Projects 
 Each subdirectory of `/Engine` contains a sharpmake file defining that project such as [Engine/Core/Core.Sharpmake.cs](Engine/Core/Core.Sharpmake.cs).

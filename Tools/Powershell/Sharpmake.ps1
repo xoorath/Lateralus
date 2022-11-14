@@ -1,7 +1,9 @@
 param(
     [switch] $Verbose,
     [switch] $Debug,
-    [switch] $Force
+    [switch] $Force,
+    # disable sharpmake multithreading (may help in debugging)
+    [switch] $DisableMultithread
 )
 
 # /Tools/Powershell
@@ -127,11 +129,18 @@ if($Debug)
     $DebugSlnPath = $DebugSlnPath | Resolve-Path -Relative;
     $DebugSlnPath = $DebugSlnPath.Replace("\", "/");
     [void]$SharpmakeParams.Add("/debugSolutionPath('$DebugSlnPath')");
+
+    [void]$SharpmakeParams.Add("/DumpDependency");
 }
 
 if($Verbose)
 {
     [void]$SharpmakeParams.Add("/verbose");
+}
+
+if($DisableMultithread)
+{
+    [void]$SharpmakeParams.Add("/Multithreaded(false)");
 }
 
 &$SharpmakeApplication $SharpmakeParams
