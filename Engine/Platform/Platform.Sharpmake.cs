@@ -20,9 +20,7 @@ namespace Lateralus
 
             if(target.Platform.HasAnyFlag(Platform.win32 | Platform.win64 | Platform.linux | Platform.mac))
             {
-                ThirdParty.ReferenceExternal(conf, target, new[] {
-                    ThirdParty.ExternalProject.glfw
-                });
+                ConfigurePC(conf, target);
             }
             else
             {
@@ -31,6 +29,15 @@ namespace Lateralus
 
             // to limit to one graph.
             conf.DumpDependencyGraph = target.Optimization.HasFlag(Optimization.Debug);
+        }
+
+        private void ConfigurePC(Configuration conf, Target target)
+        {
+            ThirdParty.ReferenceExternal(conf, target, new[] {
+                    ThirdParty.ExternalProject.glfw,
+                    ThirdParty.ExternalProject.glew
+                });
+            conf.LibraryFiles.Add("opengl32");
         }
     }
 }

@@ -1,6 +1,13 @@
 param(
+    # Run Nuke.ps1 before anything else (deeply cleans the project)
+    [switch] $Nuke,
+    # Open the solution(s) once generated
+    [switch] $Open,
+    # Verbose output from sharpmake during generation
     [switch] $Verbose,
+    # Use(/build) sharpmake debug configuration and generate a debug sharpmake solution
     [switch] $Debug,
+    # Force re-building sharpmake
     [switch] $Force,
     # disable sharpmake multithreading (may help in debugging)
     [switch] $DisableMultithread
@@ -73,12 +80,22 @@ function GetSourcesParam
     return [string]::Format("/sources({0})", ($SharpmakeFiles -join ','));
 }
 
+if($Nuke)
+{
+    Write-Host "Nuke param passed. Deeply cleaning with Nuke.ps1."
+    &"./Nuke.ps1"
+}
+
 # /
 $ProjectRootDir = [System.IO.Path]::GetFullPath([System.IO.Path]::Combine($ScriptDir, "..", ".."));
 # /generated
-$GeneratedDir = [System.IO.Path]::GetFullPath([System.IO.Path]::Combine($ProjectRoot, "generated"));
+$GeneratedDir = [System.IO.Path]::Combine($ProjectRootDir, "generated");
+# /generated/lateralus_vs2022_win64.sln
+$LateralusSolution = [System.IO.Path]::Combine($GeneratedDir, "lateralus_vs2022_win64.sln");
 # /generated
-$DebugSlnPath = $GeneratedDir;
+$DebugSlnDirectory = $GeneratedDir;
+# /generated/lateralus_vs2022_win64.sln
+$DebugSln = [System.IO.Path]::Combine($DebugSlnDirectory, "sharpmake_debugsolution.vs2022.sln");
 # /BuildSystem
 $BuildSystemDir = [System.IO.Path]::GetFullPath([System.IO.Path]::Combine($ProjectRootDir, "BuildSystem"));
 # /ThirdParty
@@ -125,12 +142,10 @@ $SharpmakeParams = [System.Collections.ArrayList]@(
 if($Debug)
 {
     [void]$SharpmakeParams.Add("/generateDebugSolution");
-    New-Item -ItemType Directory -Force -Path $DebugSlnPath
-    $DebugSlnPath = $DebugSlnPath | Resolve-Path -Relative;
-    $DebugSlnPath = $DebugSlnPath.Replace("\", "/");
-    [void]$SharpmakeParams.Add("/debugSolutionPath('$DebugSlnPath')");
-
-    [void]$SharpmakeParams.Add("/DumpDependency");
+    New-Item -ItemType Directory -Force -Path $DebugSlnDirectory
+    $DebugSlnDirectory = $DebugSlnDirectory | Resolve-Path -Relative;
+    $DebugSlnDirectory = $DebugSlnDirectory.Replace("\", "/");
+    [void]$SharpmakeParams.Add("/debugSolutionPath('$DebugSlnDirectory')");
 }
 
 if($Verbose)
@@ -144,6 +159,15 @@ if($DisableMultithread)
 }
 
 &$SharpmakeApplication $SharpmakeParams
+
+if($Open)
+{
+    &Start-Process $LateralusSolution
+    if($Debug)
+    {
+        &Start-Process $DebugSln
+    }
+}
 
 Pop-Location #$ScriptDir
 

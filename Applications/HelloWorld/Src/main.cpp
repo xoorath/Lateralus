@@ -5,6 +5,7 @@
 #include "file_manager.h"
 #include <stdio.h>
 #include <iostream>
+#include <optional>
 #include <vector>
 
 #include <GL/glew.h> // Initialize with glewInit()
@@ -12,13 +13,27 @@
 // Include glfw3.h after our OpenGL definitions
 #include <GLFW/glfw3.h>
 
-#include "Logging.h"
+import Lateralus.Logging;
+import Lateralus.Logging.iLogger;
+import Lateralus.Logging.ConsoleLogger;
+import Lateralus.Logging.FileLogger;
+import Lateralus.Logging.NullLogger;
+
+using FileLogger = Lateralus::Logging::FileLogger;
+using CoutLogger = Lateralus::Logging::CoutLogger;
+using CerrLogger = Lateralus::Logging::CerrLogger;
+using NullLogger = Lateralus::Logging::NullLogger;
+using LoggerComposition = Lateralus::Logging::LoggerComposition;
+using LoggingError = std::optional<Lateralus::Logging::Error>;
+
+
+#define MAIN_LOG(...) Lateralus::Logging::Log(Lateralus::Logging::LineInfo(__FILE__, __LINE__), __VA_ARGS__)
 
 #define PI 3.14159265358979323846
 
 static void glfw_error_callback(int error, const char *description)
 {
-	LATERALUS_LOG("{}: {}", error, description);
+	MAIN_LOG("{}: {}", error, description);
 	//fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
@@ -77,6 +92,39 @@ int main(int, char **)
 	if (!glfwInit())
 		return 1;
 
+	NullLogger baseLogger;
+
+
+	if (LoggingError err = 
+		baseLogger |= std::make_shared<CoutLogger>();
+		err.has_value())
+	{
+		std::cerr << err.value().ErrorMessage << std::endl;
+		return -1;
+	}
+
+	auto lateralusLog = std::make_shared<FileLogger>();
+	if (LoggingError err =
+		lateralusLog->Open("lateralus.log", std::ios_base::app);
+		err.has_value())
+	{
+		std::cerr << err.value().ErrorMessage << std::endl;
+		return -2;
+	}
+
+	if (LoggingError err =
+		baseLogger |= lateralusLog;
+		err.has_value())
+	{
+		std::cerr << err.value().ErrorMessage << std::endl;
+		return -3;
+	}
+
+	baseLogger << "hot " << "fucking " << "dog" << "\n";
+	baseLogger << std::flush;
+	baseLogger << "hot " << "fucking " << "dog" << std::endl;
+
+	//MAIN_LOG("hot fucking {}", "dog");
 		// Decide GL+GLSL versions
 #if __APPLE__
 	// GL 3.2 + GLSL 150
@@ -105,7 +153,7 @@ int main(int, char **)
 
 	if (err)
 	{
-		LATERALUS_LOG("Failed to initialize OpenGL loader!");
+		MAIN_LOG("Failed to initialize OpenGL loader!");
 
 		return 1;
 	}

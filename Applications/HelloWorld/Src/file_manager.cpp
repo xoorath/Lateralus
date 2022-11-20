@@ -1,7 +1,5 @@
 #include "file_manager.h"
 
-#include <Logging.h>
-
 FileManager::FileManager()
 {
 }
@@ -20,7 +18,7 @@ std::string FileManager::read(const std::string& filename) {
 		file.close();
     }
     catch (std::ifstream::failure e) {
-        LATERALUS_LOG("Error reading Shader File!");
+        //LATERALUS_LOG("Error reading Shader File!");
     }
 	return file_stream.str();
 }
