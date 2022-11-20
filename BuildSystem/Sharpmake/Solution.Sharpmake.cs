@@ -30,7 +30,6 @@ namespace Lateralus
             conf.AddProject<HelloWorldProject>(target);
             conf.AddProject<CoreProject>(target);
             conf.AddProject<PlatformProject>(target);
-            conf.AddProject<LoggingProject>(target);
         }
     }
 }

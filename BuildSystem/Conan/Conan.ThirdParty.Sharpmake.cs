@@ -13,7 +13,10 @@ namespace Lateralus
         {
             glfw,
             imgui,
-            glew
+            glew,
+
+            spdlog,
+            fmt
         }
 
         public static void ReferenceExternal(Project.Configuration conf, Target target, ExternalProject externalDependancy)

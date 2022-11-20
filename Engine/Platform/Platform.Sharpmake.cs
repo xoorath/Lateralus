@@ -16,8 +16,6 @@ namespace Lateralus
         {
             base.ConfigureAll(conf, target);
 
-            conf.AddPrivateDependency<LoggingProject>(target);
-
             if(target.Platform.HasAnyFlag(Platform.win32 | Platform.win64 | Platform.linux | Platform.mac))
             {
                 ConfigurePC(conf, target);

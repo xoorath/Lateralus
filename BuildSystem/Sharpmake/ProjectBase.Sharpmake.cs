@@ -65,6 +65,10 @@ namespace Lateralus
                 Options.Vc.Compiler.Exceptions.Enable,
                 Options.Vc.Compiler.RTTI.Disable
             });
+
+            conf.Defines.Add("SPDLOG_ACTIVE_LEVEL=0");
+            ThirdParty.ReferenceExternal(conf, target, ThirdParty.ExternalProject.spdlog);
+            ThirdParty.ReferenceExternal(conf, target, ThirdParty.ExternalProject.fmt);
         }
 
         private static string GetLateralusRootDirectory()

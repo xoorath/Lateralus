@@ -1,6 +1,7 @@
 using Sharpmake;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 
 namespace Lateralus
@@ -37,11 +38,27 @@ namespace Lateralus
             string projectFileDirectory = Util.PathMakeStandard(callingFileInfo.DirectoryName);
 
             // Project configuration
+            string publicIncludeDir = Path.Combine(projectFileDirectory, "Public");
             conf.IncludePaths.AddRange(new[] {
-                Path.Combine(projectFileDirectory, "Public"),
+                publicIncludeDir,
                 Path.Combine(projectFileDirectory, "Private")
             });
             conf.Output = Configuration.OutputType.Lib;
+
+            foreach(var header in Directory.EnumerateFiles(
+                publicIncludeDir, "*.h", 
+                new EnumerationOptions() 
+                { 
+                    RecurseSubdirectories=true,
+                    ReturnSpecialDirectories=false
+                }))
+            {
+                string firstLine = File.ReadLines(header).First();
+                if (firstLine.Contains("!forced_include!", System.StringComparison.InvariantCultureIgnoreCase))
+                {
+                    conf.ForcedIncludes.Add(header);
+                }
+            }
 
             // Dependancy configuration
             if (!(this is CoreProject))

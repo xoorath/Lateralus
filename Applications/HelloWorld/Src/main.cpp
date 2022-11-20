@@ -13,28 +13,18 @@
 // Include glfw3.h after our OpenGL definitions
 #include <GLFW/glfw3.h>
 
-import Lateralus.Logging;
-import Lateralus.Logging.iLogger;
-import Lateralus.Logging.ConsoleLogger;
-import Lateralus.Logging.FileLogger;
-import Lateralus.Logging.NullLogger;
+#include <Core.Log.h>
 
-using FileLogger = Lateralus::Logging::FileLogger;
-using CoutLogger = Lateralus::Logging::CoutLogger;
-using CerrLogger = Lateralus::Logging::CerrLogger;
-using NullLogger = Lateralus::Logging::NullLogger;
-using LoggerComposition = Lateralus::Logging::LoggerComposition;
-using LoggingError = std::optional<Lateralus::Logging::Error>;
+#include "spdlog/spdlog.h"
 
 
-#define MAIN_LOG(...) Lateralus::Logging::Log(Lateralus::Logging::LineInfo(__FILE__, __LINE__), __VA_ARGS__)
+
 
 #define PI 3.14159265358979323846
 
 static void glfw_error_callback(int error, const char *description)
 {
-	MAIN_LOG("{}: {}", error, description);
-	//fprintf(stderr, "Glfw Error %d: %s\n", error, description);
+	LOG_ERROR("glfw error: {} {}", error, description);
 }
 
 void render_conan_logo()
@@ -85,6 +75,19 @@ void create_triangle(unsigned int &vbo, unsigned int &vao, unsigned int &ebo)
 	glBindVertexArray(0);
 }
 
+struct foo
+{
+	void bar() {
+		LOG_INFO("It is the message from first");
+	}
+	static void Bar() {
+		LOG_INFO("It is the message from second");
+	}
+	static void Bar(int b) {
+		LOG_INFO("It is the message from third");
+	}
+};
+
 int main(int, char **)
 {
 	// Setup window
@@ -92,40 +95,26 @@ int main(int, char **)
 	if (!glfwInit())
 		return 1;
 
-	NullLogger baseLogger;
+	spdlog::set_level(static_cast<spdlog::level::level_enum>(SPDLOG_ACTIVE_LEVEL));
 
+	// https://github.com/gabime/spdlog/wiki/3.-Custom-formatting
+	spdlog::set_pattern("[%Y-%m-%d %H:%M:%S] %^[%l] %s(%#):%$ %v");
+	LOG_INFO("Starting log.");
+	spdlog::set_pattern("[%H:%M:%S] %^[%l] %s(%#):%$ %v");
 
-	if (LoggingError err = 
-		baseLogger |= std::make_shared<CoutLogger>();
-		err.has_value())
-	{
-		std::cerr << err.value().ErrorMessage << std::endl;
-		return -1;
-	}
+	LOG_TRACE("a humble trace message");
+	LOG_DEBUG("a humble debug message");
+	LOG_INFO("a humble info message");
+	LOG_WARN("a humble warning");
+	LOG_ERROR("a humble error");
+	LOG_CRITICAL("a humble critical message");
 
-	auto lateralusLog = std::make_shared<FileLogger>();
-	if (LoggingError err =
-		lateralusLog->Open("lateralus.log", std::ios_base::app);
-		err.has_value())
-	{
-		std::cerr << err.value().ErrorMessage << std::endl;
-		return -2;
-	}
-
-	if (LoggingError err =
-		baseLogger |= lateralusLog;
-		err.has_value())
-	{
-		std::cerr << err.value().ErrorMessage << std::endl;
-		return -3;
-	}
-
-	baseLogger << "hot " << "fucking " << "dog" << "\n";
-	baseLogger << std::flush;
-	baseLogger << "hot " << "fucking " << "dog" << std::endl;
-
-	//MAIN_LOG("hot fucking {}", "dog");
-		// Decide GL+GLSL versions
+	foo f;
+	f.bar();
+	foo::Bar();
+	foo::Bar(1);
+	
+	// Decide GL+GLSL versions
 #if __APPLE__
 	// GL 3.2 + GLSL 150
 	const char *glsl_version = "#version 150";
@@ -149,12 +138,9 @@ int main(int, char **)
 	glfwMakeContextCurrent(window);
 	glfwSwapInterval(1); // Enable vsync
 
-	bool err = glewInit() != GLEW_OK;
-
-	if (err)
+	if (GLenum result = glewInit(); result != GLEW_OK)
 	{
-		MAIN_LOG("Failed to initialize OpenGL loader!");
-
+		LOG_CRITICAL("Couldn't init glew. Result: {}", result);
 		return 1;
 	}
 

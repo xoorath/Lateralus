@@ -32,7 +32,6 @@ namespace Lateralus
             // Dependancy configuration
             conf.AddPublicDependency<CoreProject>(target);
             conf.AddPublicDependency<PlatformProject>(target);
-            conf.AddPublicDependency<LoggingProject>(target);
 
             // Decorative configuration
             conf.SolutionFolder = "Applications";
