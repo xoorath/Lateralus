@@ -2,7 +2,7 @@
 
 # Prerequisites
 
-- The [conan](conan.io/downloads.html) package manager.
+- The [conan](https://conan.io/downloads.html) package manager.
     - **Tested with 1.54.0**
 - [Visual Studio 2022](https://visualstudio.microsoft.com/vs/)
     - **Tested with 17.3.6**
