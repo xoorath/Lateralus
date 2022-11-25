@@ -53,7 +53,7 @@ Similarly each subdirectory of `/Applications` contains a sharpmake file definin
 
 Engine projects should derive [Lateralus.EngineProject](./BuildSystem/Sharpmake/LateralusProject.Sharpmake.cs). It's source code should exist in a `Public/` and `Private/` directory next to the project sharpmake file. Any modules and headers in Public will be accessable to projects that depend on that library. Any code in the private directory will only be accessable to that engine library itself.
 
-Similarly new application projects should derive [Lateralus.ApplicationProject](./BuildSystem/Sharpmake/LateralusProject.Sharpmake.cs) and it's source code should exist in a `Src/` directory next to the project sharpmake file.
+Similarly new application projects should derive [Lateralus.ApplicationProject](./BuildSystem/Sharpmake/ProjectBase.Sharpmake.cs) and it's source code should exist in a `Src/` directory next to the project sharpmake file.
 
 ### New files
 
