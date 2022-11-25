@@ -5,6 +5,7 @@
 #include "file_manager.h"
 #include <stdio.h>
 #include <iostream>
+#include <memory>
 #include <optional>
 #include <vector>
 
@@ -17,15 +18,12 @@
 
 #include "spdlog/spdlog.h"
 
-
+import Lateralus.Platform;
+import Lateralus.Platform.iPlatform;
+import Lateralus.Platform.iWindow;
 
 
 #define PI 3.14159265358979323846
-
-static void glfw_error_callback(int error, const char *description)
-{
-	LOG_ERROR("glfw error: {} {}", error, description);
-}
 
 void render_conan_logo()
 {
@@ -47,7 +45,7 @@ void render_conan_logo()
 
 void create_triangle(unsigned int &vbo, unsigned int &vao, unsigned int &ebo)
 {
-
+	
 	// create the triangle
 	float triangle_vertices[] = {
 		0.0f, 0.25f, 0.0f,	// position vertex 1
@@ -75,25 +73,10 @@ void create_triangle(unsigned int &vbo, unsigned int &vao, unsigned int &ebo)
 	glBindVertexArray(0);
 }
 
-struct foo
-{
-	void bar() {
-		LOG_INFO("It is the message from first");
-	}
-	static void Bar() {
-		LOG_INFO("It is the message from second");
-	}
-	static void Bar(int b) {
-		LOG_INFO("It is the message from third");
-	}
-};
-
 int main(int, char **)
 {
-	// Setup window
-	glfwSetErrorCallback(glfw_error_callback);
-	if (!glfwInit())
-		return 1;
+	using namespace std;
+	using namespace Lateralus::Platform;
 
 	spdlog::set_level(static_cast<spdlog::level::level_enum>(SPDLOG_ACTIVE_LEVEL));
 
@@ -102,51 +85,31 @@ int main(int, char **)
 	LOG_INFO("Starting log.");
 	spdlog::set_pattern("[%H:%M:%S] %^[%l] %s(%#):%$ %v");
 
-	LOG_TRACE("a humble trace message");
-	LOG_DEBUG("a humble debug message");
-	LOG_INFO("a humble info message");
-	LOG_WARN("a humble warning");
-	LOG_ERROR("a humble error");
-	LOG_CRITICAL("a humble critical message");
-
-	foo f;
-	f.bar();
-	foo::Bar();
-	foo::Bar(1);
-	
-	// Decide GL+GLSL versions
-#if __APPLE__
-	// GL 3.2 + GLSL 150
-	const char *glsl_version = "#version 150";
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // 3.2+ only
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);		   // Required on Mac
-#else
-	// GL 3.0 + GLSL 130
-	const char *glsl_version = "#version 130";
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
-	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
-#endif
-
-	// Create window with graphics context
-	GLFWwindow *window = glfwCreateWindow(1280, 720, "Dear ImGui - Conan", NULL, NULL);
-	if (window == NULL)
-		return 1;
-	glfwMakeContextCurrent(window);
-	glfwSwapInterval(1); // Enable vsync
-
-	if (GLenum result = glewInit(); result != GLEW_OK)
+	shared_ptr<Lateralus::Platform::iPlatform> platform = Lateralus::Platform::CreatePlatform();
+	if(platform == nullptr)
 	{
-		LOG_CRITICAL("Couldn't init glew. Result: {}", result);
+		LOG_CRITICAL_ALWAYS("Unsupported platform.");
 		return 1;
 	}
+	shared_ptr<Lateralus::Platform::iWindow> window = Lateralus::Platform::CreateWindow();
+	if (window == nullptr)
+	{
+		LOG_CRITICAL_ALWAYS("Unsupported platform.");
+		return 2;
+	}
 
-	int screen_width, screen_height;
-	glfwGetFramebufferSize(window, &screen_width, &screen_height);
-	glViewport(0, 0, screen_width, screen_height);
+	if (auto err = platform->Init(); err.has_value())
+	{
+		LOG_CRITICAL_ALWAYS("Error initializing platform: {}", err.value().GetErrorMessage());
+		return 3;
+	}
+
+	Lateralus::Platform::WindowCreateContext windowCreateContext(platform);
+	if (auto err = window->Create(windowCreateContext); err.has_value())
+	{
+		LOG_CRITICAL_ALWAYS("Error creating window: {}", err.value().GetErrorMessage());
+		return 4;
+	}
 
 	// create our geometries
 	unsigned int vbo, vao, ebo;
@@ -160,15 +123,16 @@ int main(int, char **)
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO &io = ImGui::GetIO();
-	// Setup Platform/Renderer bindings
-	ImGui_ImplGlfw_InitForOpenGL(window, true);
-	ImGui_ImplOpenGL3_Init(glsl_version);
+
+	ImGui_ImplGlfw_InitForOpenGL(reinterpret_cast<GLFWwindow*>(window->HACK_GetGlfwWindow()), true);
+	ImGui_ImplOpenGL3_Init("#version 150");
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
 
-	while (!glfwWindowShouldClose(window))
+	while (!window->ShouldClose())
 	{
-		glfwPollEvents();
+		window->PollEvents();
+
 		glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
@@ -206,10 +170,7 @@ int main(int, char **)
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-		int display_w, display_h;
-		glfwGetFramebufferSize(window, &display_w, &display_h);
-		glViewport(0, 0, display_w, display_h);
-		glfwSwapBuffers(window);
+		window->SwapBuffers();
 	}
 
 	// Cleanup
@@ -217,8 +178,7 @@ int main(int, char **)
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
 
-	glfwDestroyWindow(window);
-	glfwTerminate();
+	
 
 	return 0;
 }

@@ -5,6 +5,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Linq;
+using System;
 
 namespace Lateralus
 {
@@ -17,7 +18,7 @@ namespace Lateralus
             AddTargets(new Target(
                 Platform.win64,
                 DevEnv.vs2022,
-                Optimization.Debug | Optimization.Release
+                Optimization.Debug | Optimization.Release | Optimization.Retail
             ));
 
             // Add module extensions 
@@ -49,9 +50,8 @@ namespace Lateralus
                     throw new LateralusError($@"Lateralus is not yet configured to build for platform: {target.Platform}");
                 case Platform.win64:
                     conf.Defines.Add(new[] {
-                        "LATERALUS_DESKTOP=1",
-                        "LATERALUS_WIN64=1",
-                        "LATERALUS_ADDRESS_64=1",
+                        "PLATFORM_DESKTOP=1",
+                        "PLATFORM_WIN64=1"
                     });
                     break;
             }
@@ -65,6 +65,15 @@ namespace Lateralus
                 Options.Vc.Compiler.Exceptions.Enable,
                 Options.Vc.Compiler.RTTI.Disable
             });
+
+            {
+                Func<bool, int> btoi = (bool b) => b ? 1 : 0;
+                conf.Defines.AddRange(new[] {
+                    $@"CONF_DEBUG={btoi(target.Optimization.HasFlag(Optimization.Debug))}",
+                    $@"CONF_RELEASE={btoi(target.Optimization.HasFlag(Optimization.Release))}",
+                    $@"CONF_RETAIL={btoi(target.Optimization.HasFlag(Optimization.Retail))}"
+                });
+            }
 
             conf.Defines.Add("SPDLOG_ACTIVE_LEVEL=0");
             ThirdParty.ReferenceExternal(conf, target, ThirdParty.ExternalProject.spdlog);

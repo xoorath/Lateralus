@@ -1,5 +1,11 @@
+module;
+
+#include <Core.h>
+
 export module Lateralus.Platform.Error;
 
+import <optional>;
+import <string>;
 import <string_view>;
 
 using namespace std;
@@ -10,11 +16,16 @@ namespace Lateralus::Platform
     struct Error
     {
         constexpr
+        Error() = default;
+
+        constexpr
         Error(string_view message)
-            : ErrorMessage(message)
+            : m_ErrorMessage(message)
         {
         }
 
-        string_view const ErrorMessage = nullptr;
+        ENCAPSULATE(string, ErrorMessage);
     };
+
+    export const optional<Error> Success;
 }

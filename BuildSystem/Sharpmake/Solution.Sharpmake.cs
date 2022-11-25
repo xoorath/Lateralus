@@ -15,7 +15,7 @@ namespace Lateralus
             AddTargets(new Target(
                     Platform.win64,
                     DevEnv.vs2022,
-                    Optimization.Debug | Optimization.Release
+                    Optimization.Debug | Optimization.Release | Optimization.Retail
             ));
         }
 
