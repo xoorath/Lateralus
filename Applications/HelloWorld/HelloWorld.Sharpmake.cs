@@ -25,10 +25,6 @@ namespace Lateralus
             conf.Defines.Add("IMGUI_IMPL_OPENGL_LOADER_GLEW");
             conf.LibraryFiles.Add("opengl32");
 
-            // Warning C5105 macro expansion producing 'defined' has undefined behavior
-            // Disabled because WinBase.h produces this warning.
-            conf.Options.Add(new Options.Vc.Compiler.DisableSpecificWarnings("5105"));
-
             // to limit to one graph.
             conf.DumpDependencyGraph = target.Optimization.HasFlag(Optimization.Debug);
         }

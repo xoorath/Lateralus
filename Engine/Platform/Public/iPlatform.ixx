@@ -13,6 +13,7 @@ namespace Lateralus::Platform
     class iPlatform
     {
     public:
+        virtual ~iPlatform() = default;
         virtual optional<Error> Init() = 0;
     };
 }

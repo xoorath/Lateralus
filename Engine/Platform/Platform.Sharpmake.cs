@@ -36,6 +36,13 @@ namespace Lateralus
                     ThirdParty.ExternalProject.glew
                 });
             conf.LibraryFiles.Add("opengl32");
+
+            if(!target.Optimization.HasFlag(Optimization.Retail))
+            {
+                ThirdParty.ReferenceExternal(conf, target, ThirdParty.ExternalProject.imgui);
+                conf.Defines.Add("IMGUI_IMPL_OPENGL_LOADER_GLEW");
+
+            }
         }
     }
 }

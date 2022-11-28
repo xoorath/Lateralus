@@ -7,7 +7,6 @@ module;
 export module Lateralus.Platform.Windows.Platform;
 
 import <format>;
-import <mutex>;
 import <optional>;
 import <string_view>;
 
@@ -34,23 +33,25 @@ namespace Lateralus::Platform::Windows
     public:
         optional<Error> Init() override
         {
-            lock_guard guard(m_Mutex);
-            if (m_Initialized)
+            glfwSetErrorCallback(GlfwErrorCallback);
+            if (glfwInit() != GLFW_TRUE)
             {
-                return {};
+                const char* description = nullptr;
+                int code = glfwGetError(&description);
+                if (description != nullptr)
+                {
+                    return Error(format("Could not init glfw. Error({}) : {}", code, description));
+                }
+                return Error(format("Could not init glfw. Error code: {}", code));
             }
 
-            glfwSetErrorCallback(GlfwErrorCallback);
-            if (!glfwInit())
-                return Error("GLFW failed to initialize.");
-
-            m_Initialized = true;
             return Success;
         }
 
-    private:
-        mutex m_Mutex;
-        bool m_Initialized = false;
+        ~Platform() override
+        {
+            glfwTerminate();
+        }
     };
 
 }

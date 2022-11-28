@@ -2,6 +2,10 @@ module;
 
 #if PLATFORM_WIN64
 
+#if IMGUI_SUPPORT
+#include <imgui.h>
+#endif
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h> // Include glfw3.h after our OpenGL definitions
 #include <Core.Log.h>
@@ -9,9 +13,13 @@ module;
 export module Lateralus.Platform.GLFW.Window;
 
 import Lateralus.Platform.Error;
+import Lateralus.Platform.Imgui.GLFW;
+import Lateralus.Platform.Imgui.OpenGL;
 import Lateralus.Platform.iPlatform;
 import Lateralus.Platform.iWindow;
 import Lateralus.Core;
+import <atomic>;
+import <mutex>;
 import <optional>;
 import <string_view>;
 
@@ -20,6 +28,13 @@ using namespace std::string_view_literals;
 
 namespace Lateralus::Platform::GLFW
 {
+    namespace 
+    {
+        constexpr uint32 k_OpenGLVersionMajor = 3;
+        constexpr uint32 k_OpenGLVersionMinor = 2;
+        char const* k_GlslVersion = "#version 150";
+    }
+
     export
     class Window : public iWindow
     {
@@ -60,12 +75,42 @@ namespace Lateralus::Platform::GLFW
                 return Error("Failed to create GLFWWindow");
             }
 
-            if (auto err = TryMakeContextCurrent(); err.has_value())
-            {
-                return err;
-            }
-
+            glfwMakeContextCurrent(m_Window);
+            // enable vsync
             glfwSwapInterval(1);
+
+#if IMGUI_SUPPORT
+            do
+            {
+                if (!IMGUI_CHECKVERSION())
+                {
+                    LOG_ERROR("Could not init imgui: IMGUI_CHECKVERSION()");
+                    break;
+                }
+
+                m_ImguiContext = ImGui::CreateContext();
+                if(m_ImguiContext == nullptr)
+                {
+                    LOG_ERROR("Could not init imgui: CreateContext()");
+                    break;
+                }
+
+                ImGui::StyleColorsLight();
+
+                if (!ImGui_ImplGlfw_InitForOpenGL(m_Window, true))
+                {
+                    LOG_ERROR("Could not init imgui: ImGui_ImplGlfw_InitForOpenGL({}, true)", reinterpret_cast<void*>(m_Window));
+                    break;
+                }
+
+                if (!ImGui_ImplOpenGL3_Init(k_GlslVersion))
+                {
+                    LOG_ERROR("Could not init imgui: ImGui_ImplOpenGL3_Init(\"{}\")", k_GlslVersion);
+                    break;
+                }
+            } while(false);
+#endif
+
 
             if (GLenum result = glewInit(); result != GLEW_OK)
             {
@@ -75,7 +120,7 @@ namespace Lateralus::Platform::GLFW
             int32 screenWidth, screenHeight;
             glfwGetFramebufferSize(m_Window, &screenWidth, &screenHeight);
             glViewport(0, 0, static_cast<int>(screenWidth), static_cast<int>(screenHeight));
-
+            
             return Success;
         }
 
@@ -92,6 +137,33 @@ namespace Lateralus::Platform::GLFW
         }
 
         // iWindow
+        void Clear() override
+        {
+            glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
+            glClear(GL_COLOR_BUFFER_BIT);
+        }
+
+        // iWindow
+        void NewFrame() override
+        {
+#if IMGUI_SUPPORT
+            // feed inputs to dear imgui, start new frame
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplGlfw_NewFrame();
+            ImGui::NewFrame();
+#endif
+        }
+
+        // iWindow
+        void Render() override
+        {
+#if IMGUI_SUPPORT
+            ImGui::Render();
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+#endif
+        }
+
+        // iWindow
         void SwapBuffers() override
         {
             int32 screenWidth, screenHeight;
@@ -99,17 +171,6 @@ namespace Lateralus::Platform::GLFW
             glViewport(0, 0, static_cast<int>(screenWidth), static_cast<int>(screenHeight));
 
             glfwSwapBuffers(m_Window);
-        }
-
-        // iWindow
-        void* HACK_GetGlfwWindow() override
-        { 
-            return reinterpret_cast<void*>(m_Window);
-        }
-
-        string GetGlslVersion() override
-        {
-            return k_GlslVersion;
         }
 
     private:
@@ -120,6 +181,14 @@ namespace Lateralus::Platform::GLFW
                 return Error("Unable to make window current: window missing.");
             }
             glfwMakeContextCurrent(m_Window);
+
+#if IMGUI_SUPPORT
+            if (m_ImguiContext != nullptr)
+            {
+                ImGui::SetCurrentContext(m_ImguiContext);
+            }
+#endif
+
             return Success;
         }
 
@@ -138,21 +207,38 @@ namespace Lateralus::Platform::GLFW
 
         optional<Error> TryShutdown()
         {
+            optional<Error> problems = Success;
+
             if (m_Window == nullptr)
             {
-                return Error("Unable to get frame buffer size: window missing.");
+                problems = Error("Unable to get frame buffer size: window missing.");
             }
-            glfwDestroyWindow(m_Window);
-            glfwTerminate();
-            m_Window = nullptr;
-            return Success;
+            else
+            {
+                glfwDestroyWindow(m_Window);
+                m_Window = nullptr;
+            }
+
+#if IMGUI_SUPPORT
+            if (m_ImguiContext == nullptr)
+            {
+                problems = Error("Unable to shutdown imgui: imgui context missing.");
+            }
+            else
+            {
+                ImGui_ImplOpenGL3_Shutdown();
+                ImGui::DestroyContext(m_ImguiContext);
+                m_ImguiContext = nullptr;
+            }
+#endif
+            return problems;
         }
 
         GLFWwindow* m_Window = nullptr;
 
-        static constexpr uint32 k_OpenGLVersionMajor = 3;
-        static constexpr uint32 k_OpenGLVersionMinor = 2;
-        static constexpr std::string k_GlslVersion = "#version 150";
+#if IMGUI_SUPPORT
+        ImGuiContext* m_ImguiContext = nullptr;
+#endif
     };
 }
 

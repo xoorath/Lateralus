@@ -71,7 +71,8 @@ namespace Lateralus
                 conf.Defines.AddRange(new[] {
                     $@"CONF_DEBUG={btoi(target.Optimization.HasFlag(Optimization.Debug))}",
                     $@"CONF_RELEASE={btoi(target.Optimization.HasFlag(Optimization.Release))}",
-                    $@"CONF_RETAIL={btoi(target.Optimization.HasFlag(Optimization.Retail))}"
+                    $@"CONF_RETAIL={btoi(target.Optimization.HasFlag(Optimization.Retail))}",
+                    $@"IMGUI_SUPPORT={btoi(!target.Optimization.HasFlag(Optimization.Retail))}"
                 });
             }
 

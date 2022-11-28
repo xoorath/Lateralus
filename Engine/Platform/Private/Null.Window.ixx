@@ -23,15 +23,22 @@ namespace Lateralus::Platform::Null
 
         void PollEvents() override
         {
-        };
+        }
+
+        void Clear() override
+        {
+        }
+
+        void NewFrame() override
+        {
+        }
+
+        void Render() override
+        {
+        }
 
         void SwapBuffers() override
         {
-        };
-
-        string GetGlslVersion() override
-        {
-            return string();
         }
     };
 }

@@ -120,27 +120,25 @@ int main(int, char **)
 	triangle_shader.init(FileManager::read("Assets/simple-shader.vs"), FileManager::read("Assets/simple-shader.fs"));
 
 	// Setup Dear ImGui context
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGuiIO &io = ImGui::GetIO();
-
-	ImGui_ImplGlfw_InitForOpenGL(reinterpret_cast<GLFWwindow*>(window->HACK_GetGlfwWindow()), true);
-	ImGui_ImplOpenGL3_Init("#version 150");
+	
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
+
+	// display a first frame quickly (better than a blank frame)
+
+	window->Clear();
+	window->NewFrame();
+	window->SwapBuffers();
 
 	while (!window->ShouldClose())
 	{
 		window->PollEvents();
 
-		glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		window->Clear();
 
-		// feed inputs to dear imgui, start new frame
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
+		window->NewFrame();
 
+	
 		// rendering our geometries
 		triangle_shader.use();
 		glBindVertexArray(vao);
@@ -166,19 +164,13 @@ int main(int, char **)
         ImGui::Begin("Conan logo");
         render_conan_logo();
         ImGui::End();
-		// Render dear imgui into screen
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
+		window->Render();
 		window->SwapBuffers();
 	}
 
-	// Cleanup
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplGlfw_Shutdown();
-	ImGui::DestroyContext();
-
-	
+	window.reset();
+	platform.reset();
 
 	return 0;
 }

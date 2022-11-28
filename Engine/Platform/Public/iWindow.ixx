@@ -29,22 +29,29 @@ namespace Lateralus::Platform
         virtual
         optional<Error> Create(WindowCreateContext const& ctx) = 0;
 
+        // Returns true if the window has been requested to close (ie: hitting a close button on PC)
         virtual
         bool ShouldClose() const = 0;
 
+        // Poll events periodically (once per frame is typical)
         virtual
         void PollEvents() = 0;
 
+        // Call once to begin a new frame.
+        virtual
+        void NewFrame() = 0;
+
+        // Clear once per frame before rendering anything
+        virtual
+        void Clear() = 0;
+
+        // Render once per frame before swapping buffers.
+        virtual
+        void Render() = 0;
+
+        // Swap buffers to end the render frame.
         virtual
         void SwapBuffers() = 0;
-
-        // For now we just provide the glfw window to bind with imgui
-        // The future design should have a Lateralus::Platform layer imgui binding that depends on GLFW.Window directly.
-        virtual
-        void* HACK_GetGlfwWindow() { return nullptr; }
-
-        virtual
-        string GetGlslVersion() = 0;
     };
 
     export

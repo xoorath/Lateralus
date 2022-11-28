@@ -58,3 +58,11 @@ Similarly new application projects should derive [Lateralus.ApplicationProject](
 ### New files
 
 When files are added or removed from projects you need to re-run sharpmake.
+
+# Lateralus?
+
+Project needed a name and I was listening to Tool. It'll get a new name if I ever make good progress with it.
+
+# License
+
+There is no license for this project yet.
