@@ -16,6 +16,7 @@
 
 #include "spdlog/spdlog.h"
 
+import Lateralus.Core.Signal;
 import Lateralus.Platform;
 import Lateralus.Platform.iPlatform;
 import Lateralus.Platform.iWindow;
@@ -76,12 +77,14 @@ int main(int, char **)
 	using namespace std;
 	using namespace Lateralus::Platform;
 
+
 	spdlog::set_level(static_cast<spdlog::level::level_enum>(SPDLOG_ACTIVE_LEVEL));
 
 	// https://github.com/gabime/spdlog/wiki/3.-Custom-formatting
 	spdlog::set_pattern("[%Y-%m-%d %H:%M:%S] %^[%l] %s(%#):%$ %v");
 	LOG_INFO("Starting log.");
 	spdlog::set_pattern("[%H:%M:%S] %^[%l] %s(%#):%$ %v");
+
 
 	shared_ptr<Lateralus::Platform::iPlatform> platform = Lateralus::Platform::CreatePlatform();
 	if(platform == nullptr)

@@ -44,3 +44,39 @@
         void Set##name (type paramName) { m_##name = paramName; } \
     private: \
         type m_##name
+
+namespace Lateralus
+{
+    template <size_t S>
+    struct EnumIntSized;
+
+    template <>
+    struct EnumIntSized<1>
+    {
+        using type = signed char;
+    };
+
+    template <>
+    struct EnumIntSized<2>
+    {
+        using type = signed short;
+    };
+
+    template <>
+    struct EnumIntSized<4>
+    {
+        using type = signed int;
+    };
+
+    template <class T>
+    struct EnumInt
+    {
+        typedef typename EnumIntSized<sizeof(T)>::type type;
+    };
+}
+
+#define ENUM_FLAG_OPERATORS(EnumType) \
+constexpr inline EnumType operator | (EnumType a, EnumType b)    { return static_cast<EnumType>(static_cast<Lateralus::EnumInt<EnumType>::type>(a) | static_cast<Lateralus::EnumInt<EnumType>::type>(b)); } \
+constexpr inline EnumType operator & (EnumType a, EnumType b)    { return static_cast<EnumType>(static_cast<Lateralus::EnumInt<EnumType>::type>(a) & static_cast<Lateralus::EnumInt<EnumType>::type>(b)); } \
+constexpr inline EnumType operator ^ (EnumType a, EnumType b)    { return static_cast<EnumType>(static_cast<Lateralus::EnumInt<EnumType>::type>(a) ^ static_cast<Lateralus::EnumInt<EnumType>::type>(b)); } \
+constexpr inline EnumType operator ~ (EnumType a)                { return static_cast<EnumType>(~static_cast<Lateralus::EnumInt<EnumType>::type>(a)); } 

@@ -1,6 +1,8 @@
 module;
 
-#if PLATFORM_WIN64
+#define USE_GLFW_WINDOW (PLATFORM_WIN64==1)
+
+#if USE_GLFW_WINDOW
 
 #if IMGUI_SUPPORT
 #include <imgui.h>
@@ -13,8 +15,13 @@ module;
 export module Lateralus.Platform.GLFW.Window;
 
 import Lateralus.Platform.Error;
+#if IMGUI_SUPPORT
+import Lateralus.Platform.Imgui.iImpl;
 import Lateralus.Platform.Imgui.GLFW;
 import Lateralus.Platform.Imgui.OpenGL;
+#endif
+import Lateralus.Platform.Input;
+import Lateralus.Platform.GLFW.Input;
 import Lateralus.Platform.iPlatform;
 import Lateralus.Platform.iWindow;
 import Lateralus.Core;
@@ -22,9 +29,16 @@ import <atomic>;
 import <mutex>;
 import <optional>;
 import <string_view>;
+import <vector>;
 
 using namespace std;
 using namespace std::string_view_literals;
+
+#if IMGUI_SUPPORT
+using namespace Lateralus::Platform::Imgui;
+#endif
+using namespace Lateralus::Platform::Input;
+using namespace Lateralus::Platform::Input::GLFW;
 
 namespace Lateralus::Platform::GLFW
 {
@@ -79,7 +93,14 @@ namespace Lateralus::Platform::GLFW
             // enable vsync
             glfwSwapInterval(1);
 
+            if (GLenum result = glewInit(); result != GLEW_OK)
+            {
+                return Error(format("Couldn't init glew. Result: {}", result));
+            }
+
 #if IMGUI_SUPPORT
+            // do/while to break after logging an error.
+            // We log an error here instead of returning an error because imgui failing is recoverable.
             do
             {
                 if (!IMGUI_CHECKVERSION())
@@ -96,30 +117,42 @@ namespace Lateralus::Platform::GLFW
                 }
 
                 ImGui::StyleColorsLight();
-
-                if (!ImGui_ImplGlfw_InitForOpenGL(m_Window, true))
+                
                 {
-                    LOG_ERROR("Could not init imgui: ImGui_ImplGlfw_InitForOpenGL({}, true)", reinterpret_cast<void*>(m_Window));
-                    break;
+                    shared_ptr<ImplGLFW> implGlfw = make_shared<ImplGLFW>();
+                    if (auto err = implGlfw->Init(m_Window, true); err.has_value())
+                    {
+                        LOG_ERROR("Could not init imgui: implGlfw->Init() {}", err.value().GetErrorMessage());
+                        break;
+                    }
+                    m_Impls.push_back(move(implGlfw));
                 }
 
-                if (!ImGui_ImplOpenGL3_Init(k_GlslVersion))
                 {
-                    LOG_ERROR("Could not init imgui: ImGui_ImplOpenGL3_Init(\"{}\")", k_GlslVersion);
-                    break;
+                    shared_ptr<ImplOpenGL> implOpenGL = make_shared<ImplOpenGL>();
+                    if(auto err = implOpenGL->Init(k_GlslVersion); err.has_value())
+                    {
+                        LOG_ERROR("Could not init imgui: implOpenGL->Init() {}", err.value().GetErrorMessage());
+                        break;
+                    }
+                    m_Impls.push_back(move(implOpenGL));
                 }
+
             } while(false);
 #endif
-
-
-            if (GLenum result = glewInit(); result != GLEW_OK)
-            {
-                return Error(format("Couldn't init glew. Result: {}", result));
-            }
 
             int32 screenWidth, screenHeight;
             glfwGetFramebufferSize(m_Window, &screenWidth, &screenHeight);
             glViewport(0, 0, static_cast<int>(screenWidth), static_cast<int>(screenHeight));
+
+            {
+                shared_ptr<InputProvider> inputProvider = make_shared<InputProvider>();
+                if (auto err = inputProvider->Init(m_Window); err.has_value())
+                {
+                    return err;
+                }
+                m_Input = move(inputProvider);
+            }
             
             return Success;
         }
@@ -148,8 +181,10 @@ namespace Lateralus::Platform::GLFW
         {
 #if IMGUI_SUPPORT
             // feed inputs to dear imgui, start new frame
-            ImGui_ImplOpenGL3_NewFrame();
-            ImGui_ImplGlfw_NewFrame();
+            for (auto const& impl : m_Impls)
+            {
+                impl->NewFrame();
+            }
             ImGui::NewFrame();
 #endif
         }
@@ -159,7 +194,10 @@ namespace Lateralus::Platform::GLFW
         {
 #if IMGUI_SUPPORT
             ImGui::Render();
-            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            for (auto const& impl : m_Impls)
+            {
+                impl->Render();
+            }
 #endif
         }
 
@@ -211,7 +249,7 @@ namespace Lateralus::Platform::GLFW
 
             if (m_Window == nullptr)
             {
-                problems = Error("Unable to get frame buffer size: window missing.");
+                problems = Error("Unable to destroy window. Window missing.");
             }
             else
             {
@@ -220,24 +258,37 @@ namespace Lateralus::Platform::GLFW
             }
 
 #if IMGUI_SUPPORT
+            for (auto& impl : m_Impls)
+            {
+                impl->Shutdown();
+            }
+            m_Impls.clear();
+
             if (m_ImguiContext == nullptr)
             {
                 problems = Error("Unable to shutdown imgui: imgui context missing.");
             }
             else
             {
-                ImGui_ImplOpenGL3_Shutdown();
                 ImGui::DestroyContext(m_ImguiContext);
                 m_ImguiContext = nullptr;
             }
 #endif
+            if(m_Input != nullptr)
+            {
+                m_Input->Shutdown();
+                m_Input.reset();
+            }
+
             return problems;
         }
 
         GLFWwindow* m_Window = nullptr;
+        shared_ptr<Input::iInputProvider> m_Input;
 
 #if IMGUI_SUPPORT
         ImGuiContext* m_ImguiContext = nullptr;
+        vector<shared_ptr<iImpl>> m_Impls;
 #endif
     };
 }
