@@ -1,5 +1,6 @@
 module;
 
+#include <Core.Log.h>
 #include <GLFW/glfw3.h>
 
 export module Lateralus.Platform.GLFW.Input;
@@ -7,6 +8,7 @@ export module Lateralus.Platform.GLFW.Input;
 import Lateralus.Core;
 import Lateralus.Platform.Error;
 import Lateralus.Platform.Input;
+import <format>;
 import <optional>;
 import <unordered_map>;
 
@@ -78,6 +80,33 @@ namespace Lateralus::Platform::Input::GLFW
 
             m_KeyActionCallback(keyCode, keyAction, keyModifier);
         }
+
+        static void TextCallback(GLFWwindow* window, unsigned int codepoint)
+        {
+            if (auto found = s_InputProviders.find(window); found != s_InputProviders.end())
+            {
+                found->second->_TextCallback(window, codepoint);
+            }
+        }
+
+        void _TextCallback(GLFWwindow* window, unsigned int codepoint)
+        {
+            Codepoint cp;
+
+            static_assert(sizeof(cp) == sizeof(codepoint), "Unicode codepoint is expected to be 4 bytes.");
+
+            if (errno_t err = memcpy_s(reinterpret_cast<void*>(&cp), sizeof(cp), reinterpret_cast<void const*>(&codepoint), sizeof(codepoint)); err == 0)
+            {
+                m_TextCallback(cp);
+
+                //LOG_INFO("input: {}", (char32_t)cp);
+            }
+            else
+            {
+                LOG_ERROR("memcpy_s failed for unicode codepoint: {}", codepoint);
+            }
+        }
+
 
         GLFWwindow* m_Window = nullptr;
         static unordered_map<GLFWwindow*, InputProvider*> s_InputProviders;

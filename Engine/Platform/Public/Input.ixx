@@ -200,7 +200,7 @@ namespace Lateralus::Platform::Input
     // see: https://stackoverflow.com/questions/50403342/how-do-i-properly-use-stdstring-on-utf-8-in-c
     // see: https://en.wikipedia.org/wiki/Unicode
     export
-    using Codepoint = char8_t[4];
+    using Codepoint = char32_t;
 
     // Text callback one unicode codepoint at a time. obeys modifiers.
     export
@@ -240,9 +240,10 @@ namespace Lateralus::Platform::Input
 
     protected:
         TextCallback m_TextCallback;
+        KeyActionCallback m_KeyActionCallback;
+
         CursorPositionCallback m_CursorPositionCallback;
         CursorEnterCallback m_CursorEnterCallback;
         CursorLeaveCallback m_CursorLeaveCallback;
-        KeyActionCallback m_KeyActionCallback;
     };
 }

@@ -62,7 +62,11 @@ SOFTWARE.
 #include <stdint.h>     // intptr_t
 #include <GL/glew.h>    // Needs to be initialized with glewInit() in user's code
 
+#endif
+
 export module Lateralus.Platform.Imgui.OpenGL;
+
+#if IMGUI_SUPPORT
 
 import Lateralus.Platform.Imgui.iImpl;
 import Lateralus.Platform.Error;

@@ -56,7 +56,9 @@ SOFTWARE.
 #include <optional>
 #include <unordered_map>
 
+#endif
 export module Lateralus.Platform.Imgui.GLFW;
+#if IMGUI_SUPPORT
 
 import Lateralus.Platform.Imgui.iImpl;
 import Lateralus.Platform.Error;
