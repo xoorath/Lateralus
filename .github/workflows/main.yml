@@ -7,50 +7,40 @@ on:
       - '**.md'
   pull_request:
     branches: [ master ]
-  workflow_dispatch:
 
 jobs:
-  prebuild-windows:
+  package-windows:
+    strategy:
+      matrix:
+        configuration: [Debug, Release, Retail]
     runs-on: Windows-2022
     steps:
       - name: Export Environment Variables
         run: |
           $short_sha=("${{ github.sha }}").substring(0, 7)
-          $conanfile_path=$GITHUB_WORKSPACE+"BuildSystem/conanfile.txt"
           Add-Content -Path $env:GITHUB_ENV -Value "GITHUB_SHORT_SHA=$short_sha"
-          Add-Content -Path $env:GITHUB_ENV -Value "CONANFILE_PATH=$conanfile_path"
-          
         shell: pwsh
-
+        
       - uses: actions/checkout@v3.1.0
         with:
           submodules: true
           fetch-depth: 1
           lfs: recursive
-
+          
       - name: Get Conan
         uses: turtlebrowser/get-conan@v1.1
 
       - name: Get Cmake
         uses: lukka/get-cmake@v3.24.3
-
+          
       - name: Run Sharpmake.ps1
         run: ./Tools/Powershell/Sharpmake.ps1
         shell: pwsh
-          
+
       - name: Get msbuild 17
         uses: microsoft/setup-msbuild@v1.1
         with:
           vs-version: 17
 
-  build-windows-debug:
-    runs-on: Windows-2022
-    needs: prebuild-windows
-      - name: Build app for Debug
-        run: msbuild generated\lateralus_vs2022_win64.sln -t:build -property:Configuration=Debug
-
-  build-windows-debug:
-    runs-on: Windows-2022
-    needs: prebuild-windows
-      - name: Build app for Debug
-        run: msbuild generated\lateralus_vs2022_win64.sln -t:build -property:Configuration=Debug
+      - name: Build app for ${{ matrix.configuration }}
+        run: msbuild generated\lateralus_vs2022_win64.sln -t:rebuild -verbosity:diag -property:Configuration=${{ matrix.configuration }}
