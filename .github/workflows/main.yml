@@ -13,30 +13,21 @@ jobs:
   prebuild-windows:
     runs-on: Windows-2022
     steps:
+      - name: Export Environment Variables
+        run: |
+          $short_sha=("${{ github.sha }}").substring(0, 7)
+          $conanfile_path=$GITHUB_WORKSPACE+"BuildSystem/conanfile.txt"
+          Add-Content -Path $env:GITHUB_ENV -Value "GITHUB_SHORT_SHA=$short_sha"
+          Add-Content -Path $env:GITHUB_ENV -Value "CONANFILE_PATH=$conanfile_path"
+          
+        shell: pwsh
+
       - uses: actions/checkout@v3.1.0
         with:
           submodules: true
           fetch-depth: 1
-          lfs: false
+          lfs: recursive
 
-      - name: Cache Conan
-        id: cache-conan
-        uses: actions/cache@v3
-        with:
-          path: ~/.conan
-          key: ${{ runner.os }}-conan-${{ hashFiles('**/conanfile.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-conan-
-
-      - name: Cache Sharpmake
-        id: cache-sharpmake
-        uses: actions/cache@v3
-        with:
-          path: ThirdParty/Sharpmake/tmp
-          key: ${{ runner.os }}-sharpmake-${{ hashFiles( 'ThirdParty/**/*.cs') }}
-          restore-keys: |
-            ${{ runner.os }}-sharpmake-
-            
       - name: Get Conan
         uses: turtlebrowser/get-conan@v1.1
 
@@ -46,53 +37,20 @@ jobs:
       - name: Run Sharpmake.ps1
         run: ./Tools/Powershell/Sharpmake.ps1
         shell: pwsh
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: ${{ runner.os }}-generated
-          path: generated/
-          if-no-files-found: error
-
-
-  build-windows:
-    runs-on: Windows-2022
-    strategy:
-      matrix:
-        configuration: [Debug, Release]
-    needs: prebuild-windows
-    steps:
-      - uses: actions/checkout@v3.1.0
-        with:
-          submodules: false
-          fetch-depth: 1
-          lfs: true
-      - uses: actions/download-artifact@v3
-        with:
-          name: ${{ runner.os }}-generated
-          path: generated/
-      - name: Cache Conan
-        id: cache-conan
-        uses: actions/cache@v3
-        with:
-          path: ~/.conan
-          key: ${{ runner.os }}-conan-${{ hashFiles('**/conanfile.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-conan-
-      - name: setup-msbuild
-        uses: microsoft/setup-msbuild@v1.1.3
+          
+      - name: Get msbuild 17
+        uses: microsoft/setup-msbuild@v1.1
         with:
           vs-version: 17
-      - name: Cache Generated
-        id: cache-generated
-        uses: actions/cache@v3
-        with:
-          path: generated/
-          key: ${{ runner.os }}-${{ matrix.configuration }}-generated-${{ hashFiles('generated/**.vcxproj', 'generated/**.sln') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.configuration }}-generated-
-      - name: Build app for ${{ matrix.configuration }}
-        run: msbuild generated\lateralus_vs2022_win64.sln -t:build -property:Configuration=${{ matrix.configuration }}
-      - name: Delete cross pipeline artifacts
-        uses: geekyeggo/delete-artifact@v2
-        with:
-          name: ${{ runner.os }}-generated
+
+  build-windows-debug:
+    runs-on: Windows-2022
+    needs: prebuild-windows
+      - name: Build app for Debug
+        run: msbuild generated\lateralus_vs2022_win64.sln -t:build -property:Configuration=Debug
+
+  build-windows-debug:
+    runs-on: Windows-2022
+    needs: prebuild-windows
+      - name: Build app for Debug
+        run: msbuild generated\lateralus_vs2022_win64.sln -t:build -property:Configuration=Debug
