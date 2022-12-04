@@ -88,6 +88,8 @@ if($Nuke)
 
 # /
 $ProjectRootDir = [System.IO.Path]::GetFullPath([System.IO.Path]::Combine($ScriptDir, "..", ".."));
+# /Tools
+$ToolsDir = [System.IO.Path]::Combine($ProjectRootDir, "Tools");
 # /generated
 $GeneratedDir = [System.IO.Path]::Combine($ProjectRootDir, "generated");
 # /generated/lateralus_vs2022_win64.sln
@@ -117,6 +119,7 @@ $SharpmakeApplication = [System.IO.Path]::Combine($SharpmakeDir, "tmp", "bin", $
 $SharpmakeInputDirectories = @(
     $BuildSystemDir,
     [System.IO.Path]::Combine($ProjectRootDir, "Applications"),
+    [System.IO.Path]::Combine($ToolsDir, "Utilities"),
     [System.IO.Path]::Combine($ProjectRootDir, "Engine")
 );
 # Directories to ignore when searching for sharpmake files.

@@ -53,17 +53,22 @@ SOFTWARE.
 
 #include "imgui.h"
 
+#include <memory>
 #include <optional>
 #include <unordered_map>
 
 #endif
 export module Lateralus.Platform.Imgui.GLFW;
 #if IMGUI_SUPPORT
-
+import <array>;
+import Lateralus.Core;
 import Lateralus.Platform.Imgui.iImpl;
 import Lateralus.Platform.Error;
+import Lateralus.Platform.Input;
+import Lateralus.Platform.Fonts.NotoEmoji;
 
 using namespace std;
+using namespace Lateralus::Platform::Input;
 
 namespace Lateralus::Platform::Imgui
 {
@@ -78,25 +83,20 @@ namespace Lateralus::Platform::Imgui
             Shutdown();
         }
 
-        optional<Error> Init(GLFWwindow* window, bool installCallbacks)
+        optional<Error> Init(GLFWwindow* window, shared_ptr<Input::iInputProvider> input)
         {
+            if (m_Window != nullptr || m_Input != nullptr)
+            {
+                Shutdown();
+            }
             m_Window = window;
-            m_InstalledCallbacks = installCallbacks;
-            
+            m_Input = move(input);
+
             return Init();
         }
 
         void Shutdown()
         {
-            if (m_InstalledCallbacks)
-            {
-                glfwSetMouseButtonCallback(m_Window, m_PrevUserCallbackMousebutton);
-                glfwSetScrollCallback(m_Window, m_PrevUserCallbackScroll);
-                glfwSetKeyCallback(m_Window, m_PrevUserCallbackKey);
-                glfwSetCharCallback(m_Window, m_PrevUserCallbackChar);
-                m_InstalledCallbacks = false;
-            }
-
             for (ImGuiMouseCursor cursor_n = 0; cursor_n < ImGuiMouseCursor_COUNT; cursor_n++)
             {
                 glfwDestroyCursor(m_MouseCursors[cursor_n]);
@@ -105,11 +105,17 @@ namespace Lateralus::Platform::Imgui
 
             if (m_Window != nullptr)
             {
-                if (auto found = s_ImplMap.find(m_Window); found != s_ImplMap.end())
-                {
-                    s_ImplMap.erase(found);
-                }
                 m_Window = nullptr;
+            }
+
+            if (m_Input)
+            {
+                m_Input->GetTextCallback() -= m_TextCallbackToken;
+                m_Input->GetKeyActionCallback() -= m_KeyActionCallbackToken;
+                m_Input->GetMouseButtonCallback() -= m_MouseButtonCallbackToken;
+                m_Input->GetScrollWheelCallback() -= m_ScrollWheelCallbackToken;
+
+                m_Input.reset();
             }
         }
 
@@ -141,6 +147,23 @@ namespace Lateralus::Platform::Imgui
             UpdateGamepads();
         }
 
+        void LoadFonts()
+        {
+            ImGuiIO& io = ImGui::GetIO();
+
+            {
+                io.Fonts->AddFontFromFileTTF("Assets/Noto_Sans/NotoSans-Regular.ttf", 24, nullptr, io.Fonts->GetGlyphRangesDefault());
+            }
+
+            {
+                static ImWchar ranges[] = { (ImWchar)0x1, (ImWchar)0x1FFFF, (ImWchar)0 };
+                static ImFontConfig cfg;
+                cfg.OversampleH = cfg.OversampleV = 1;
+                cfg.MergeMode = true;
+                io.Fonts->AddFontFromFileTTF("Assets/Noto_Emoji/NotoEmoji-VariableFont_wght.ttf", 24, &cfg, ranges);
+            }
+        }
+
     private:
 
         optional<Error> Init() override
@@ -149,14 +172,13 @@ namespace Lateralus::Platform::Imgui
             {
                 return Error("glfw window missing");
             }
-            
-            if (s_ImplMap.find(m_Window) != s_ImplMap.end())
-            {
-                return Error("ImGui.GLFW init called twice.");
-            }
 
+            if (m_Input == nullptr)
+            {
+                return Error("platform input missing");
+            }
+            
             m_Time = 0.0;
-            s_ImplMap[m_Window] = this;
 
             // Setup back-end capabilities flags
             ImGuiIO& io = ImGui::GetIO();
@@ -207,17 +229,60 @@ namespace Lateralus::Platform::Imgui
             m_MouseCursors[ImGuiMouseCursor_Hand] = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
 
             // Chain GLFW callbacks: our callbacks will call the user's previously installed callbacks, if any.
-            m_PrevUserCallbackMousebutton = nullptr;
-            m_PrevUserCallbackScroll = nullptr;
-            m_PrevUserCallbackKey = nullptr;
-            m_PrevUserCallbackChar = nullptr;
-            if (m_InstalledCallbacks)
+
+            if (m_Input != nullptr)
             {
-                m_PrevUserCallbackMousebutton = glfwSetMouseButtonCallback(m_Window, &ImplGLFW::MouseButtonCallback);
-                m_PrevUserCallbackScroll = glfwSetScrollCallback(m_Window, &ImplGLFW::ScrollCallback);
-                m_PrevUserCallbackKey = glfwSetKeyCallback(m_Window, &ImplGLFW::KeyCallback);
-                m_PrevUserCallbackChar = glfwSetCharCallback(m_Window, &ImplGLFW::CharCallback);
+                m_TextCallbackToken = m_Input->GetTextCallback() += 
+                [this](u8string_view input) 
+                {
+                    array<char8_t, 5> buff = { '\0' };
+                    copy(
+                        input.begin(), input.end(),// from
+                        buff.begin() // to
+                    );
+                    ImGuiIO& io = ImGui::GetIO();
+                    io.AddInputCharactersUTF8(reinterpret_cast<char const*>(buff.data()));
+                };
+
+                m_KeyActionCallbackToken = m_Input->GetKeyActionCallback() += 
+                [this](KeyCode code, KeyAction action, KeyModifier modifier)
+                {
+                    ImGuiIO& io = ImGui::GetIO();
+                    if (action == KeyAction::Press)
+                    {
+                        io.KeysDown[(int)code] = true;
+                    }
+                    if (action == KeyAction::Release)
+                    {
+                        io.KeysDown[(int)code] = false;
+                    }
+
+                    // Modifiers are not reliable across systems
+                    io.KeyCtrl = io.KeysDown[(int)KeyCode::Key_LEFT_CONTROL] || io.KeysDown[(int)KeyCode::Key_RIGHT_CONTROL];
+                    io.KeyShift = io.KeysDown[(int)KeyCode::Key_LEFT_SHIFT] || io.KeysDown[(int)KeyCode::Key_RIGHT_SHIFT];
+                    io.KeyAlt = io.KeysDown[(int)KeyCode::Key_LEFT_ALT] || io.KeysDown[(int)KeyCode::Key_RIGHT_ALT];
+                    io.KeySuper = io.KeysDown[(int)KeyCode::Key_LEFT_SUPER] || io.KeysDown[(int)KeyCode::Key_RIGHT_SUPER];
+                };
+
+                m_MouseButtonCallbackToken = m_Input->GetMouseButtonCallback() +=
+                [this](MouseButton button, MouseButtonAction action, KeyModifier modifiers)
+                {
+                    if (action == MouseButtonAction::Press)
+                    {
+                        m_MouseJustPressed[static_cast<size_t>(button)] = true;
+                    }
+                };
+
+                m_ScrollWheelCallbackToken = m_Input->GetScrollWheelCallback() +=
+                [](double x, double y)
+                {
+                    ImGuiIO& io = ImGui::GetIO();
+                    io.MouseWheelH += static_cast<float>(x);
+                    io.MouseWheel += static_cast<float>(y);
+                };
             }
+
+            LoadFonts();
 
             return Success;
         }
@@ -226,7 +291,7 @@ namespace Lateralus::Platform::Imgui
         {
             // Update buttons
             ImGuiIO& io = ImGui::GetIO();
-            for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++)
+            for (usz i = 0; i < m_MouseJustPressed.size(); i++)
             {
                 // If a mouse press event came, always pass it as "mouse held this frame", so we don't miss click-release events that are shorter than 1 frame.
                 io.MouseDown[i] = m_MouseJustPressed[i] || glfwGetMouseButton(m_Window, i) != 0;
@@ -328,111 +393,18 @@ namespace Lateralus::Platform::Imgui
             glfwSetClipboardString((GLFWwindow*)user_data, text);
         }
 
-        static void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
-        {
-            if (auto found = s_ImplMap.find(window); found != s_ImplMap.end())
-            {
-                found->second->_MouseButtonCallback(window, button, action, mods);
-            }
-        }
-
-        void _MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
-        {
-            if (m_PrevUserCallbackMousebutton != nullptr)
-                m_PrevUserCallbackMousebutton(window, button, action, mods);
-
-            if (action == GLFW_PRESS && button >= 0 && button < IM_ARRAYSIZE(m_MouseJustPressed))
-            {
-                m_MouseJustPressed[button] = true;
-            }
-        }
-        
-        static void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
-        {
-            if (auto found = s_ImplMap.find(window); found != s_ImplMap.end())
-            {
-                found->second->_ScrollCallback(window, xoffset, yoffset);
-            }
-        }
-
-        void _ScrollCallback(GLFWwindow* window, double xoffset, double yoffset) const
-        {
-            if (m_PrevUserCallbackScroll != nullptr)
-            {
-                m_PrevUserCallbackScroll(window, xoffset, yoffset);
-            }
-
-            ImGuiIO& io = ImGui::GetIO();
-            io.MouseWheelH += (float)xoffset;
-            io.MouseWheel += (float)yoffset;
-        }
-
-        static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
-        {
-            if (auto found = s_ImplMap.find(window); found != s_ImplMap.end())
-            {
-                found->second->_KeyCallback(window, key, scancode, action, mods);
-            }
-        }
-
-        void _KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) const
-        {
-            if (m_PrevUserCallbackKey != nullptr)
-            {
-                m_PrevUserCallbackKey(window, key, scancode, action, mods);
-            }
-
-            ImGuiIO& io = ImGui::GetIO();
-            if (action == GLFW_PRESS)
-            {
-                io.KeysDown[key] = true;
-            }
-            if (action == GLFW_RELEASE)
-            {
-                io.KeysDown[key] = false;
-            }
-
-            // Modifiers are not reliable across systems
-            io.KeyCtrl = io.KeysDown[GLFW_KEY_LEFT_CONTROL] || io.KeysDown[GLFW_KEY_RIGHT_CONTROL];
-            io.KeyShift = io.KeysDown[GLFW_KEY_LEFT_SHIFT] || io.KeysDown[GLFW_KEY_RIGHT_SHIFT];
-            io.KeyAlt = io.KeysDown[GLFW_KEY_LEFT_ALT] || io.KeysDown[GLFW_KEY_RIGHT_ALT];
-            io.KeySuper = io.KeysDown[GLFW_KEY_LEFT_SUPER] || io.KeysDown[GLFW_KEY_RIGHT_SUPER];
-        }
-
-        static void CharCallback(GLFWwindow* window, unsigned int c)
-        {
-            if (auto found = s_ImplMap.find(window); found != s_ImplMap.end())
-            {
-                found->second->_CharCallback(window, c);
-            }
-        }
-
-        void _CharCallback(GLFWwindow* window, unsigned int c) const
-        {
-            if (m_PrevUserCallbackChar != nullptr)
-            {
-                m_PrevUserCallbackChar(window, c);
-            }
-
-            ImGuiIO& io = ImGui::GetIO();
-            io.AddInputCharacter(c);
-        }
 
         GLFWwindow*         m_Window = nullptr;
         double              m_Time = 0.0;
-        bool                m_MouseJustPressed[5] = { false, false, false, false, false };
-        GLFWcursor*         m_MouseCursors[ImGuiMouseCursor_COUNT] = {};
-        bool                m_InstalledCallbacks = false;
+        array<bool, (int)MouseButton::COUNT> m_MouseJustPressed = { false };
+        array<GLFWcursor*, ImGuiMouseCursor_COUNT> m_MouseCursors = { nullptr };
 
-        // Chain GLFW callbacks: our callbacks will call the user's previously installed callbacks, if any.
-        GLFWmousebuttonfun  m_PrevUserCallbackMousebutton = nullptr;
-        GLFWscrollfun       m_PrevUserCallbackScroll = nullptr;
-        GLFWkeyfun          m_PrevUserCallbackKey = nullptr;
-        GLFWcharfun         m_PrevUserCallbackChar = nullptr;
+        TextCallback::Token m_TextCallbackToken;
+        KeyActionCallback::Token m_KeyActionCallbackToken;
+        MouseButtonCallback::Token m_MouseButtonCallbackToken;
+        ScrollWheelCallback::Token m_ScrollWheelCallbackToken;
 
-        static unordered_map<GLFWwindow*, ImplGLFW*> s_ImplMap;
+        shared_ptr<Input::iInputProvider> m_Input;
     };
-
-    unordered_map<GLFWwindow*, ImplGLFW*> ImplGLFW::s_ImplMap;
 }
 #endif

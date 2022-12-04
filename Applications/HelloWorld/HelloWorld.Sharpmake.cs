@@ -17,7 +17,6 @@ namespace Lateralus
             base.ConfigureAll(conf, target);
             
             ThirdParty.ReferenceExternal(conf, target, new[] {
-                ThirdParty.ExternalProject.imgui,
                 ThirdParty.ExternalProject.glfw,
                 ThirdParty.ExternalProject.glew
             });

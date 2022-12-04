@@ -38,8 +38,8 @@ namespace Lateralus::Platform::Input
     export
     enum class KeyAction
     {
-        Press,
         Release,
+        Press,
         Repeat
     };
 
@@ -195,16 +195,37 @@ namespace Lateralus::Platform::Input
         return code >= KeyCode::Key_ESCAPE && code <= KeyCode::Key_MENU;
     }
 
-    // A native endian UTF-32 code point.
-    // see: http://utf8everywhere.org/
-    // see: https://stackoverflow.com/questions/50403342/how-do-i-properly-use-stdstring-on-utf-8-in-c
-    // see: https://en.wikipedia.org/wiki/Unicode
     export
-    using Codepoint = char32_t;
+    enum class MouseButton
+    {
+        MouseButton_1 = 0,
+        MouseButton_2,
+        MouseButton_3,
 
-    // Text callback one unicode codepoint at a time. obeys modifiers.
+        MouseButton_4,
+        MouseButton_5,
+        MouseButton_6,
+        MouseButton_7,
+        MouseButton_8,
+
+        COUNT,
+        
+        Left = MouseButton_1,
+        Right = MouseButton_2,
+        Middle = MouseButton_3,
+    };
+
     export
-    using TextCallback = Signal<void(Codepoint)>;
+    enum class MouseButtonAction
+    {
+        Release,
+        Press,
+        Repeat
+    };
+
+    // Text callback one unicode character at a time (utf-8; characters may be multiple bytes).
+    export
+    using TextCallback = Signal<void(u8string_view)>;
 
     export
     using KeyActionCallback = Signal<void(KeyCode, KeyAction, KeyModifier)>;
@@ -218,6 +239,12 @@ namespace Lateralus::Platform::Input
     // (Desktop) cursor exited the window
     export
     using CursorLeaveCallback = Signal<void(iWindow*)>;
+    // (Desktop) Mouse button action (click down, release, etc)
+    export
+    using MouseButtonCallback = Signal<void(MouseButton, MouseButtonAction, KeyModifier)>;
+    // (Desktop) Scroll wheel delta
+    export
+    using ScrollWheelCallback = Signal<void(double, double)>;
 
     export
     class iInputProvider
@@ -237,6 +264,8 @@ namespace Lateralus::Platform::Input
         CursorPositionCallback::SignalSubscribe& GetCursorPositionCallback() { return m_CursorPositionCallback; }
         CursorEnterCallback::SignalSubscribe& GetCursorEnterCallback() { return m_CursorEnterCallback; }
         CursorLeaveCallback::SignalSubscribe& GetCursorLeaveCallback() { return m_CursorLeaveCallback; }
+        MouseButtonCallback::SignalSubscribe& GetMouseButtonCallback() { return m_MouseButtonCallback; }
+        ScrollWheelCallback::SignalSubscribe& GetScrollWheelCallback() { return m_ScrollWheelCallback; }
 
     protected:
         TextCallback m_TextCallback;
@@ -245,5 +274,8 @@ namespace Lateralus::Platform::Input
         CursorPositionCallback m_CursorPositionCallback;
         CursorEnterCallback m_CursorEnterCallback;
         CursorLeaveCallback m_CursorLeaveCallback;
+
+        MouseButtonCallback m_MouseButtonCallback;
+        ScrollWheelCallback m_ScrollWheelCallback;
     };
 }

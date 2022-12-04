@@ -13,6 +13,7 @@ namespace Lateralus
         {
             glfw,
             imgui,
+            freetype,
             glew,
 
             spdlog,

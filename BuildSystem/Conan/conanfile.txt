@@ -3,6 +3,7 @@ imgui/1.74
 glfw/3.3.8
 glew/2.2.0
 spdlog/[>=1.4.1]
+freetype/2.12.1
 
 [generators]
 json

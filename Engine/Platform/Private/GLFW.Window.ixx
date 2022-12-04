@@ -19,6 +19,7 @@ import Lateralus.Platform.Error;
 import Lateralus.Platform.Imgui.iImpl;
 import Lateralus.Platform.Imgui.GLFW;
 import Lateralus.Platform.Imgui.OpenGL;
+import Lateralus.Platform.Imgui.Theme;
 #endif
 import Lateralus.Platform.Input;
 import Lateralus.Platform.GLFW.Input;
@@ -98,6 +99,15 @@ namespace Lateralus::Platform::GLFW
                 return Error(format("Couldn't init glew. Result: {}", result));
             }
 
+            {
+                shared_ptr<InputProvider> inputProvider = make_shared<InputProvider>();
+                if (auto err = inputProvider->Init(m_Window); err.has_value())
+                {
+                    return err;
+                }
+                m_Input = move(inputProvider);
+            }
+
 #if IMGUI_SUPPORT
             // do/while to break after logging an error.
             // We log an error here instead of returning an error because imgui failing is recoverable.
@@ -116,11 +126,12 @@ namespace Lateralus::Platform::GLFW
                     break;
                 }
 
-                ImGui::StyleColorsLight();
+                ApplyTheme();
                 
+                shared_ptr<ImplGLFW> implGlfw;
                 {
-                    shared_ptr<ImplGLFW> implGlfw = make_shared<ImplGLFW>();
-                    if (auto err = implGlfw->Init(m_Window, true); err.has_value())
+                    implGlfw = make_shared<ImplGLFW>();
+                    if (auto err = implGlfw->Init(m_Window, m_Input); err.has_value())
                     {
                         LOG_ERROR("Could not init imgui: implGlfw->Init() {}", err.value().GetErrorMessage());
                         break;
@@ -144,15 +155,6 @@ namespace Lateralus::Platform::GLFW
             int32 screenWidth, screenHeight;
             glfwGetFramebufferSize(m_Window, &screenWidth, &screenHeight);
             glViewport(0, 0, static_cast<int>(screenWidth), static_cast<int>(screenHeight));
-
-            {
-                shared_ptr<InputProvider> inputProvider = make_shared<InputProvider>();
-                if (auto err = inputProvider->Init(m_Window); err.has_value())
-                {
-                    return err;
-                }
-                m_Input = move(inputProvider);
-            }
             
             return Success;
         }

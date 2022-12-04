@@ -6,8 +6,10 @@ module;
 export module Lateralus.Platform.GLFW.Input;
 
 import Lateralus.Core;
+import Lateralus.Core.UtfConversion;
 import Lateralus.Platform.Error;
 import Lateralus.Platform.Input;
+import <array>;
 import <format>;
 import <optional>;
 import <unordered_map>;
@@ -60,6 +62,9 @@ namespace Lateralus::Platform::Input::GLFW
             s_InputProviders[m_Window] = this;
 
             glfwSetKeyCallback(m_Window, KeyCallback);
+            glfwSetCharCallback(m_Window, TextCallback);
+            glfwSetMouseButtonCallback(m_Window, MouseButtonCallback);
+            glfwSetScrollCallback(m_Window, ScrollWheelCallback);
 
             return Success;
         }
@@ -91,22 +96,37 @@ namespace Lateralus::Platform::Input::GLFW
 
         void _TextCallback(GLFWwindow* window, unsigned int codepoint)
         {
-            Codepoint cp;
+            usz size;
+            auto utfCharacter = UTF32_to_UTF8(codepoint, size);
+            u8string_view utfStrView(utfCharacter.data(), size);
+            m_TextCallback(utfStrView);
+        }
 
-            static_assert(sizeof(cp) == sizeof(codepoint), "Unicode codepoint is expected to be 4 bytes.");
-
-            if (errno_t err = memcpy_s(reinterpret_cast<void*>(&cp), sizeof(cp), reinterpret_cast<void const*>(&codepoint), sizeof(codepoint)); err == 0)
+        static void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
+        {
+            if (auto found = s_InputProviders.find(window); found != s_InputProviders.end())
             {
-                m_TextCallback(cp);
-
-                //LOG_INFO("input: {}", (char32_t)cp);
-            }
-            else
-            {
-                LOG_ERROR("memcpy_s failed for unicode codepoint: {}", codepoint);
+                found->second->_MouseButtonCallback(window, button, action, mods);
             }
         }
 
+        void _MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
+        {
+            m_MouseButtonCallback(static_cast<MouseButton>(button), static_cast<MouseButtonAction>(action), static_cast<KeyModifier>(mods));
+        }
+
+        static void ScrollWheelCallback(GLFWwindow* window, double x, double y)
+        {
+            if (auto found = s_InputProviders.find(window); found != s_InputProviders.end())
+            {
+                found->second->_ScrollWheelCallback(window, x, y);
+            }
+        }
+
+        void _ScrollWheelCallback(GLFWwindow* window, double x, double y)
+        {
+            m_ScrollWheelCallback(x, y);
+        }
 
         GLFWwindow* m_Window = nullptr;
         static unordered_map<GLFWwindow*, InputProvider*> s_InputProviders;

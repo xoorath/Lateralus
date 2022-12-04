@@ -39,7 +39,11 @@ namespace Lateralus
 
             if(!target.Optimization.HasFlag(Optimization.Retail))
             {
-                ThirdParty.ReferenceExternal(conf, target, ThirdParty.ExternalProject.imgui);
+                ThirdParty.ReferenceExternal(conf, target, new[] 
+                { 
+                    ThirdParty.ExternalProject.imgui,
+                    ThirdParty.ExternalProject.freetype
+                });
                 conf.Defines.Add("IMGUI_IMPL_OPENGL_LOADER_GLEW");
 
             }

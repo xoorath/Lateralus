@@ -68,17 +68,33 @@ namespace Lateralus
 
             {
                 Func<bool, int> btoi = (bool b) => b ? 1 : 0;
+
+                bool hasImgui = !target.Optimization.HasFlag(Optimization.Retail);
+
                 conf.Defines.AddRange(new[] {
                     $@"CONF_DEBUG={btoi(target.Optimization.HasFlag(Optimization.Debug))}",
                     $@"CONF_RELEASE={btoi(target.Optimization.HasFlag(Optimization.Release))}",
                     $@"CONF_RETAIL={btoi(target.Optimization.HasFlag(Optimization.Retail))}",
-                    $@"IMGUI_SUPPORT={btoi(!target.Optimization.HasFlag(Optimization.Retail))}"
+                    
+                    $@"IMGUI_SUPPORT={btoi(hasImgui)}"
                 });
+
+                if(hasImgui)
+                {
+                    conf.Defines.Add("IMGUI_USE_WCHAR32=1");
+                    //conf.Defines.Add("IMGUI_ENABLE_FREETYPE=1");
+                    ThirdParty.ReferenceExternal(conf, target, new[] {
+                        ThirdParty.ExternalProject.imgui,
+                        ThirdParty.ExternalProject.freetype
+                    });
+                }
             }
 
             conf.Defines.Add("SPDLOG_ACTIVE_LEVEL=0");
-            ThirdParty.ReferenceExternal(conf, target, ThirdParty.ExternalProject.spdlog);
-            ThirdParty.ReferenceExternal(conf, target, ThirdParty.ExternalProject.fmt);
+            ThirdParty.ReferenceExternal(conf, target, new[] { 
+                ThirdParty.ExternalProject.spdlog,
+                ThirdParty.ExternalProject.fmt
+            });
         }
 
         private static string GetLateralusRootDirectory()

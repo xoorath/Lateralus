@@ -123,14 +123,14 @@ int main(int, char **)
 	// Setup Dear ImGui context
 	
 	// Setup Dear ImGui style
-	ImGui::StyleColorsDark();
+	//ImGui::StyleColorsDark();
 
 	// display a first frame quickly (better than a blank frame)
 
 	window->Clear();
 	window->NewFrame();
 	window->SwapBuffers();
-
+	char buff[2048] = {0};
 	while (!window->ShouldClose())
 	{
 		window->PollEvents();
@@ -163,8 +163,12 @@ int main(int, char **)
         ImGui::End();
 
         ImGui::Begin("Conan logo");
-        render_conan_logo();
+        //render_conan_logo();
+		
+		ImGui::InputTextMultiline("Some input", buff, 2048);
         ImGui::End();
+
+		ImGui::ShowStyleEditor();
 
 		window->Render();
 		window->SwapBuffers();
