@@ -21,11 +21,7 @@ namespace Lateralus
                 ThirdParty.ExternalProject.glew
             });
 
-            conf.Defines.Add("IMGUI_IMPL_OPENGL_LOADER_GLEW");
             conf.LibraryFiles.Add("opengl32");
-
-            // to limit to one graph.
-            conf.DumpDependencyGraph = target.Optimization.HasFlag(Optimization.Debug);
         }
     }
 }

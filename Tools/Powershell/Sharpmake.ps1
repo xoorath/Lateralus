@@ -120,10 +120,13 @@ $SharpmakeInputDirectories = @(
     $BuildSystemDir,
     [System.IO.Path]::Combine($ProjectRootDir, "Applications"),
     [System.IO.Path]::Combine($ToolsDir, "Utilities"),
-    [System.IO.Path]::Combine($ProjectRootDir, "Engine")
+    [System.IO.Path]::Combine($ProjectRootDir, "Engine"),
+    $ThirdPartyDir
 );
 # Directories to ignore when searching for sharpmake files.
-$SharpmakeExcludeDirectories = New-Object System.Collections.ArrayList;
+$SharpmakeExcludeDirectories = [System.Collections.ArrayList]@(
+    $SharpmakeDir
+);
 
 # Add every *.Sharpmake.cs from $SharpmakeInputDirectories
 $SharpmakeInputFiles = (GetSharpmakeFilesFromDirectory -Directories $SharpmakeInputDirectories -ExcludeDirectories $SharpmakeExcludeDirectories);

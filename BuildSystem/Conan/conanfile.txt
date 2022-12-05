@@ -10,3 +10,4 @@ json
 
 [options]
 glew:shared=False
+freetype:with_png=True

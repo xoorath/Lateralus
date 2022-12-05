@@ -17,6 +17,7 @@
 #include "spdlog/spdlog.h"
 
 import Lateralus.Core.Signal;
+import Lateralus.Core.ByteConversion;
 import Lateralus.Platform;
 import Lateralus.Platform.iPlatform;
 import Lateralus.Platform.iWindow;
@@ -75,6 +76,7 @@ void create_triangle(unsigned int &vbo, unsigned int &vao, unsigned int &ebo)
 int main(int, char **)
 {
 	using namespace std;
+	using namespace Lateralus;
 	using namespace Lateralus::Platform;
 
 
@@ -84,6 +86,14 @@ int main(int, char **)
 	spdlog::set_pattern("[%Y-%m-%d %H:%M:%S] %^[%l] %s(%#):%$ %v");
 	LOG_INFO("Starting log.");
 	spdlog::set_pattern("[%H:%M:%S] %^[%l] %s(%#):%$ %v");
+
+	LOG_INFO("1234 : {}", Bytes_to_String(1234));
+
+	LOG_INFO("123456 : {}", Bytes_to_String(123456));
+
+	LOG_INFO("1024*1024: {}", Bytes_to_String(1024*1024));
+
+	LOG_INFO("123: {}", Bytes_to_String(123));
 
 
 	shared_ptr<Lateralus::Platform::iPlatform> platform = Lateralus::Platform::CreatePlatform();
@@ -127,9 +137,6 @@ int main(int, char **)
 
 	// display a first frame quickly (better than a blank frame)
 
-	window->Clear();
-	window->NewFrame();
-	window->SwapBuffers();
 	char buff[2048] = {0};
 	while (!window->ShouldClose())
 	{

@@ -1,8 +1,10 @@
 using Sharpmake;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Runtime.Intrinsics.X86;
 
 namespace Lateralus
 {
@@ -44,6 +46,36 @@ namespace Lateralus
             {
                 LocalDebuggerWorkingDirectory = "$(OutDir)"
             };
+
+            {
+                Func<bool, int> btoi = (bool b) => b ? 1 : 0;
+                bool hasImgui = !target.Optimization.HasFlag(Optimization.Retail);
+
+                bool isDesktop =
+                    target.Platform.HasFlag(Platform.win64)
+                    || target.Platform.HasFlag(Platform.win32)
+                    || target.Platform.HasFlag(Platform.mac)
+                    || target.Platform.HasFlag(Platform.linux);
+
+                conf.Defines.Add(new[] {
+                    $@"USE_GLFW_WINDOW={btoi(isDesktop)}",
+                    $@"IMGUI_SUPPORT={btoi(hasImgui)}"
+                });
+
+                if (hasImgui)
+                {
+                    conf.Defines.Add($@"IMGUI_USER_CONFIG=""{GetCurrentCallingFileInfo().DirectoryName}\..\..\Engine\Platform\Private\imconfig.h""");
+                    ThirdParty.ReferenceExternal(conf, target, new[] {
+                        ThirdParty.ExternalProject.freetype,
+                        ThirdParty.ExternalProject.libpng,
+                        ThirdParty.ExternalProject.brotli,
+                        ThirdParty.ExternalProject.bzip2,
+                        ThirdParty.ExternalProject.zlib
+                    });
+
+                    conf.AddPublicDependency<ImguiProject>(target, DependencySetting.Default);
+                }
+            }
         }
 
         private FileInfo GetCurrentCallingFileInfo()

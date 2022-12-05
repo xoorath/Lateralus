@@ -2,9 +2,6 @@ using Sharpmake;
 using System.Diagnostics;
 using System.Reflection;
 using System.IO;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using System.Linq;
 using System;
 
 namespace Lateralus
@@ -44,17 +41,7 @@ namespace Lateralus
             conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
             conf.ProjectPath = $@"{GetLateralusRootDirectory()}\generated\[project.Name]_[target.DevEnv]_[target.Platform]";
 
-            switch(target.Platform)
-            {
-                default:
-                    throw new LateralusError($@"Lateralus is not yet configured to build for platform: {target.Platform}");
-                case Platform.win64:
-                    conf.Defines.Add(new[] {
-                        "PLATFORM_DESKTOP=1",
-                        "PLATFORM_WIN64=1"
-                    });
-                    break;
-            }
+            Func<bool, int> btoi = (bool b) => b ? 1 : 0;
 
             conf.Options.AddRange(new object[] {
                 Options.Vc.General.WarningLevel.Level2,
@@ -67,27 +54,21 @@ namespace Lateralus
             });
 
             {
-                Func<bool, int> btoi = (bool b) => b ? 1 : 0;
+                bool isDesktop = 
+                    target.Platform.HasFlag(Platform.win64) 
+                    || target.Platform.HasFlag(Platform.win32) 
+                    || target.Platform.HasFlag(Platform.mac)
+                    || target.Platform.HasFlag(Platform.linux);
 
-                bool hasImgui = !target.Optimization.HasFlag(Optimization.Retail);
-
-                conf.Defines.AddRange(new[] {
+                conf.Defines.Add(new[] {
                     $@"CONF_DEBUG={btoi(target.Optimization.HasFlag(Optimization.Debug))}",
                     $@"CONF_RELEASE={btoi(target.Optimization.HasFlag(Optimization.Release))}",
                     $@"CONF_RETAIL={btoi(target.Optimization.HasFlag(Optimization.Retail))}",
-                    
-                    $@"IMGUI_SUPPORT={btoi(hasImgui)}"
+
+                    $@"PLATFORM_DESKTOP={btoi(isDesktop)}",
+                    $@"PLATFORM_WIN64={btoi(target.Platform.HasFlag(Platform.win64))}"
                 });
 
-                if(hasImgui)
-                {
-                    conf.Defines.Add("IMGUI_USE_WCHAR32=1");
-                    //conf.Defines.Add("IMGUI_ENABLE_FREETYPE=1");
-                    ThirdParty.ReferenceExternal(conf, target, new[] {
-                        ThirdParty.ExternalProject.imgui,
-                        ThirdParty.ExternalProject.freetype
-                    });
-                }
             }
 
             conf.Defines.Add("SPDLOG_ACTIVE_LEVEL=0");

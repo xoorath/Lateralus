@@ -225,26 +225,26 @@ namespace Lateralus::Platform::Input
 
     // Text callback one unicode character at a time (utf-8; characters may be multiple bytes).
     export
-    using TextCallback = Signal<void(u8string_view)>;
-
+    using TextCallback = Signal<void(u8string_view), SignalLockMutex>;
+    // Key action callback one key at a time (press, release, etc).
     export
-    using KeyActionCallback = Signal<void(KeyCode, KeyAction, KeyModifier)>;
+    using KeyActionCallback = Signal<void(KeyCode, KeyAction, KeyModifier), SignalLockMutex>;
 
     // On mouse move reports the current cursor position (x, y)
     export
-    using CursorPositionCallback = Signal<void(double, double)>;
+    using CursorPositionCallback = Signal<void(double, double), SignalLockMutex>;
     // (Desktop) cursor entered the window
     export
-    using CursorEnterCallback = Signal<void(iWindow*)>;
+    using CursorEnterCallback = Signal<void(iWindow*), SignalLockMutex>;
     // (Desktop) cursor exited the window
     export
-    using CursorLeaveCallback = Signal<void(iWindow*)>;
-    // (Desktop) Mouse button action (click down, release, etc)
+    using CursorLeaveCallback = Signal<void(iWindow*), SignalLockMutex>;
+    // (Desktop) Mouse button action (click down, release, etc).
     export
-    using MouseButtonCallback = Signal<void(MouseButton, MouseButtonAction, KeyModifier)>;
+    using MouseButtonCallback = Signal<void(MouseButton, MouseButtonAction, KeyModifier), SignalLockMutex>;
     // (Desktop) Scroll wheel delta
     export
-    using ScrollWheelCallback = Signal<void(double, double)>;
+    using ScrollWheelCallback = Signal<void(double, double), SignalLockMutex>;
 
     export
     class iInputProvider
@@ -257,25 +257,14 @@ namespace Lateralus::Platform::Input
         virtual void Shutdown() = 0;
 
         // Keyboard / Text
-        TextCallback::SignalSubscribe& GetTextCallback() { return m_TextCallback; }
-        KeyActionCallback::SignalSubscribe& GetKeyActionCallback() { return m_KeyActionCallback; }
+        ENCAPSULATE_SIGNAL(TextCallback, TextCallback);
+        ENCAPSULATE_SIGNAL(KeyActionCallback, KeyActionCallback);
 
         // Mouse / Touch
-        CursorPositionCallback::SignalSubscribe& GetCursorPositionCallback() { return m_CursorPositionCallback; }
-        CursorEnterCallback::SignalSubscribe& GetCursorEnterCallback() { return m_CursorEnterCallback; }
-        CursorLeaveCallback::SignalSubscribe& GetCursorLeaveCallback() { return m_CursorLeaveCallback; }
-        MouseButtonCallback::SignalSubscribe& GetMouseButtonCallback() { return m_MouseButtonCallback; }
-        ScrollWheelCallback::SignalSubscribe& GetScrollWheelCallback() { return m_ScrollWheelCallback; }
-
-    protected:
-        TextCallback m_TextCallback;
-        KeyActionCallback m_KeyActionCallback;
-
-        CursorPositionCallback m_CursorPositionCallback;
-        CursorEnterCallback m_CursorEnterCallback;
-        CursorLeaveCallback m_CursorLeaveCallback;
-
-        MouseButtonCallback m_MouseButtonCallback;
-        ScrollWheelCallback m_ScrollWheelCallback;
+        ENCAPSULATE_SIGNAL(CursorPositionCallback, CursorPositionCallback);
+        ENCAPSULATE_SIGNAL(CursorEnterCallback, CursorEnterCallback);
+        ENCAPSULATE_SIGNAL(CursorLeaveCallback, CursorLeaveCallback);
+        ENCAPSULATE_SIGNAL(MouseButtonCallback, MouseButtonCallback);
+        ENCAPSULATE_SIGNAL(ScrollWheelCallback, ScrollWheelCallback);
     };
 }

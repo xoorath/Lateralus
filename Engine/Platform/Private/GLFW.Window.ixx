@@ -1,7 +1,4 @@
 module;
-
-#define USE_GLFW_WINDOW (PLATFORM_WIN64==1)
-
 #if USE_GLFW_WINDOW
 
 #if IMGUI_SUPPORT
@@ -195,6 +192,7 @@ namespace Lateralus::Platform::GLFW
         void Render() override
         {
 #if IMGUI_SUPPORT
+            ImGui::EndFrame();
             ImGui::Render();
             for (auto const& impl : m_Impls)
             {

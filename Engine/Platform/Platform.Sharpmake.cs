@@ -25,8 +25,6 @@ namespace Lateralus
                 throw new LateralusError($@"Unsupported platform {target.Platform}");
             }
 
-            // to limit to one graph.
-            conf.DumpDependencyGraph = target.Optimization.HasFlag(Optimization.Debug);
         }
 
         private void ConfigurePC(Configuration conf, Target target)
@@ -36,17 +34,6 @@ namespace Lateralus
                     ThirdParty.ExternalProject.glew
                 });
             conf.LibraryFiles.Add("opengl32");
-
-            if(!target.Optimization.HasFlag(Optimization.Retail))
-            {
-                ThirdParty.ReferenceExternal(conf, target, new[] 
-                { 
-                    ThirdParty.ExternalProject.imgui,
-                    ThirdParty.ExternalProject.freetype
-                });
-                conf.Defines.Add("IMGUI_IMPL_OPENGL_LOADER_GLEW");
-
-            }
         }
     }
 }

@@ -1,4 +1,5 @@
 using Sharpmake;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -45,22 +46,7 @@ namespace Lateralus
             });
             conf.Output = Configuration.OutputType.Lib;
 
-            foreach(var header in Directory.EnumerateFiles(
-                publicIncludeDir, "*.h", 
-                new EnumerationOptions() 
-                { 
-                    RecurseSubdirectories=true,
-                    ReturnSpecialDirectories=false
-                }))
-            {
-                string firstLine = File.ReadLines(header).First();
-                if (firstLine.Contains("!forced_include!", System.StringComparison.InvariantCultureIgnoreCase))
-                {
-                    conf.ForcedIncludes.Add(header);
-                }
-            }
-
-            // Dependancy configuration
+            // Dependency configuration
             if (!(this is CoreProject))
             {
                 conf.AddPublicDependency<CoreProject>(target, DependencySetting.Default, callingFileInfo.FullName, sourceLineNumber);
@@ -81,6 +67,37 @@ namespace Lateralus
             // what the proper codepath/option set is to enable lib's referencing 
             conf.ExportAdditionalLibrariesEvenForStaticLib = true;
             Debug.Assert(conf.Output == Configuration.OutputType.Lib, "above hack only relevant for libs.");
+
+            {
+                Func<bool, int> btoi = (bool b) => b ? 1 : 0;
+                bool hasImgui = !target.Optimization.HasFlag(Optimization.Retail);
+
+                bool isDesktop =
+                    target.Platform.HasFlag(Platform.win64)
+                    || target.Platform.HasFlag(Platform.win32)
+                    || target.Platform.HasFlag(Platform.mac)
+                    || target.Platform.HasFlag(Platform.linux);
+
+                conf.Defines.Add(new[] {
+                    $@"USE_GLFW_WINDOW={btoi(isDesktop)}",
+                    $@"IMGUI_SUPPORT={btoi(hasImgui)}"
+                });
+
+                if (hasImgui)
+                {
+                    int lineNumber;
+                    conf.Defines.Add($@"IMGUI_USER_CONFIG=""{GetCurrentCallingFileInfo(out lineNumber).DirectoryName}\..\Platform\Private\imconfig.h""");
+                    ThirdParty.ReferenceExternal(conf, target, new[] {
+                        ThirdParty.ExternalProject.freetype,
+                        ThirdParty.ExternalProject.libpng,
+                        ThirdParty.ExternalProject.brotli,
+                        ThirdParty.ExternalProject.bzip2,
+                        ThirdParty.ExternalProject.zlib
+                    });
+
+                    conf.AddPublicDependency<ImguiProject>(target, DependencySetting.Default);
+                }
+            }
         }
 
         private FileInfo GetCurrentCallingFileInfo(out int lineNumber)

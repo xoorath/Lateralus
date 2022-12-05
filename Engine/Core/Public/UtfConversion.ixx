@@ -80,7 +80,7 @@ namespace Lateralus
         array<char8_t, 4> uncapped = UTF32_to_UTF8(codepoint, unusedSize);
         array<char8_t, 5> nullTermed;
         std::copy(uncapped.begin(), uncapped.end(), nullTermed.begin());
-        nullTermed[4] = 0;
+        nullTermed[4] = u8'\0';
         return nullTermed;
     }
 }

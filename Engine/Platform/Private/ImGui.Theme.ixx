@@ -72,7 +72,7 @@ namespace Lateralus::Platform::Imgui
         colors[ImGuiCol_PlotLinesHovered] = panelHoverColor;
         colors[ImGuiCol_PlotHistogram] = panelActiveColor;
         colors[ImGuiCol_PlotHistogramHovered] = panelHoverColor;
-        colors[ImGuiCol_ModalWindowDarkening] = bgColor;
+        //colors[ImGuiCol_ModalWindowDarkening] = bgColor;
         colors[ImGuiCol_DragDropTarget] = bgColor;
         colors[ImGuiCol_NavHighlight] = bgColor;
         //colors[ImGuiCol_DockingPreview] = panelActiveColor;

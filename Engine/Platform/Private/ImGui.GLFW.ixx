@@ -1,5 +1,5 @@
 module;
-#if IMGUI_SUPPORT
+#if IMGUI_SUPPORT && USE_GLFW_WINDOW
 // License from: https://github.com/ocornut/imgui/blob/master/LICENSE.txt
 // Source code from: https://github.com/ocornut/imgui/blob/master/backends/imgui_impl_glfw.cpp
 /*
@@ -31,36 +31,31 @@ SOFTWARE.
 // * C++20 module support (removal of header, exporting public functions)
 // * Pragma disable warning 5105 from Winbase.h
 // * Moving functionality and state into a class (ImplGLFW)
-// * Callbacks are now wrapped in static functions that use an unordered_map 
-//   to associate back to the ImplGLFW instance.
+// * Callbacks are now handled with iInputProvide
 // * Definition of __SPECSTRINGS_STRICT_LEVEL to suppress macro redefinition 
 //   from specstrings_strict.h (windows sdk)
 
 
 #include <GLFW/glfw3.h>
-
 #if PLATFORM_WIN64
 // A lot of this code is just to cope with a macro redefinition bug: https://developercommunity.visualstudio.com/t/warning-C4005:-Outptr:-macro-redefinit/1546919
 // Each define or undefine below marked with [hack] should be removed when the above is fixed.
-#   define MICROSOFT_WINDOWS_WINBASE_H_DEFINE_INTERLOCKED_CPLUSPLUS_OVERLOADS 0 // [hack]
-#   define __SPECSTRINGS_STRICT_LEVEL 0 // [hack]
+#   define MICROSOFT_WINDOWS_WINBASE_H_DEFINE_INTERLOCKED_CPLUSPLUS_OVERLOADS 0 // [#hack]
+#   define __SPECSTRINGS_STRICT_LEVEL 0 // [#hack]
 #   undef APIENTRY
 #   include <windows.h>
-#   undef __nullnullterminated // [hack]
+#   undef __nullnullterminated // [#hack]
 #   define GLFW_EXPOSE_NATIVE_WIN32
 #   include <GLFW/glfw3native.h>
 #endif
-
 #include "imgui.h"
-
-#include <memory>
-#include <optional>
-#include <unordered_map>
-
+#include "freetype/imgui_freetype.h"
 #endif
 export module Lateralus.Platform.Imgui.GLFW;
 #if IMGUI_SUPPORT
 import <array>;
+import <memory>;
+import <optional>;
 import Lateralus.Core;
 import Lateralus.Platform.Imgui.iImpl;
 import Lateralus.Platform.Error;
@@ -87,7 +82,7 @@ namespace Lateralus::Platform::Imgui
         {
             if (m_Window != nullptr || m_Input != nullptr)
             {
-                Shutdown();
+                return Error("Multiple initialization of impl glfw.");
             }
             m_Window = window;
             m_Input = move(input);
@@ -97,18 +92,18 @@ namespace Lateralus::Platform::Imgui
 
         void Shutdown()
         {
-            for (ImGuiMouseCursor cursor_n = 0; cursor_n < ImGuiMouseCursor_COUNT; cursor_n++)
+            for (auto const cursor : m_MouseCursors)
             {
-                glfwDestroyCursor(m_MouseCursors[cursor_n]);
-                m_MouseCursors[cursor_n] = nullptr;
+                glfwDestroyCursor(cursor);
             }
+            m_MouseCursors.fill(nullptr);
 
             if (m_Window != nullptr)
             {
                 m_Window = nullptr;
             }
 
-            if (m_Input)
+            if (m_Input != nullptr)
             {
                 m_Input->GetTextCallback() -= m_TextCallbackToken;
                 m_Input->GetKeyActionCallback() -= m_KeyActionCallbackToken;
@@ -160,7 +155,8 @@ namespace Lateralus::Platform::Imgui
                 static ImFontConfig cfg;
                 cfg.OversampleH = cfg.OversampleV = 1;
                 cfg.MergeMode = true;
-                io.Fonts->AddFontFromFileTTF("Assets/Noto_Emoji/NotoEmoji-VariableFont_wght.ttf", 24, &cfg, ranges);
+                cfg.FontBuilderFlags |= ImGuiFreeTypeBuilderFlags_LoadColor;
+                io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\seguiemj.ttf", 24, &cfg, ranges);
             }
         }
 

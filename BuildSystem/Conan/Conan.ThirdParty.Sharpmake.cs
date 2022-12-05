@@ -12,12 +12,15 @@ namespace Lateralus
         public enum ExternalProject
         {
             glfw,
-            imgui,
             freetype,
+            /**/libpng, // from freetype
+            /**/brotli, // from freetype
+            /**/bzip2, // from freetype
+            /**/zlib, // from freetype
             glew,
 
             spdlog,
-            fmt
+            fmt,
         }
 
         public static void ReferenceExternal(Project.Configuration conf, Target target, ExternalProject externalDependancy)
