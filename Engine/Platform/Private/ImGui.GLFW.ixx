@@ -60,10 +60,12 @@ import Lateralus.Core;
 import Lateralus.Platform.Imgui.iImpl;
 import Lateralus.Platform.Error;
 import Lateralus.Platform.Input;
-import Lateralus.Platform.Fonts.NotoEmoji;
+import Lateralus.Platform.Font.NotoEmojiRegular;
+import Lateralus.Platform.Font.NotoSansRegular;
 
 using namespace std;
 using namespace Lateralus::Platform::Input;
+using namespace Lateralus::Platform::Font;
 
 namespace Lateralus::Platform::Imgui
 {
@@ -147,16 +149,30 @@ namespace Lateralus::Platform::Imgui
             ImGuiIO& io = ImGui::GetIO();
 
             {
-                io.Fonts->AddFontFromFileTTF("Assets/Noto_Sans/NotoSans-Regular.ttf", 24, nullptr, io.Fonts->GetGlyphRangesDefault());
+                static ImFontConfig cfg;
+                strcpy_s(cfg.Name, "Noto Sans Regular");
+                io.Fonts->AddFontFromMemoryCompressedTTF(
+                    reinterpret_cast<void*>(NotoSansRegular_data), 
+                    static_cast<int>(NotoSansRegular_size), 
+                    24,
+                    &cfg,
+                    io.Fonts->GetGlyphRangesDefault());
             }
 
             {
                 static ImWchar ranges[] = { (ImWchar)0x1, (ImWchar)0x1FFFF, (ImWchar)0 };
                 static ImFontConfig cfg;
+                strcpy_s(cfg.Name, "Noto Emoji Regular");
                 cfg.OversampleH = cfg.OversampleV = 1;
                 cfg.MergeMode = true;
                 cfg.FontBuilderFlags |= ImGuiFreeTypeBuilderFlags_LoadColor;
-                io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\seguiemj.ttf", 24, &cfg, ranges);
+
+                io.Fonts->AddFontFromMemoryCompressedTTF(
+                    reinterpret_cast<void*>(NotoEmojiRegular_data),
+                    static_cast<int>(NotoEmojiRegular_size),
+                    24,
+                    &cfg,
+                    ranges);
             }
         }
 

@@ -171,16 +171,16 @@ bool binary_to_compressed_c(string_view inputParam, string_view outputParam, str
         ifstream inputFile;
         inputFile.open(string(inputParam), ios::in | ios::binary);
         
-        inputFile.ignore(numeric_limits<streamsize>::max());
-        streampos const length = inputFile.gcount();
-        inputFile.clear();
+        inputFile.seekg(0, ifstream::end);
+        size_t const length = static_cast<size_t>(inputFile.tellg());
         inputFile.seekg(0, ifstream::beg);
+
         inputFileContents.resize(length);
         fill(inputFileContents.begin(), inputFileContents.end(), '\0');
 
         if (!inputFile.read(inputFileContents.data(), length ))
         {
-            cerr << "[warning] not all bytes may have been written." << endl;
+            cerr << "[warning] not all bytes may have been read." << endl;
         }
 
         inputFile.close();
@@ -232,7 +232,10 @@ bool binary_to_compressed_c(string_view inputParam, string_view outputParam, str
             {
                 outputFile << namespaceTabbing << "export\n";
             }
-            outputFile << namespaceTabbing << "const unsigned int " << symbolParam << "_data[] = \n";
+            // #hack #bug - This array can't be const in the msvc that comes with VS 17.3.6
+            // When the module is imported the array for whatever reason is entirely blank / null initialized.
+            // If we remove the const qualifier everything works as expected.
+            outputFile << namespaceTabbing << "unsigned int " << symbolParam << "_data[] = \n";
             outputFile << namespaceTabbing << "{";
             int column = 0;
 
