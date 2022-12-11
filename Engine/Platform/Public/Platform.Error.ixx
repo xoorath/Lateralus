@@ -12,20 +12,14 @@ using namespace std;
 
 namespace Lateralus::Platform
 {
-    export 
-    struct Error
-    {
-        constexpr
-        Error() = default;
+export struct Error
+{
+    constexpr Error() = default;
 
-        constexpr
-        Error(string_view message)
-            : m_ErrorMessage(message)
-        {
-        }
+    constexpr Error(string_view message) : m_ErrorMessage(message) {}
 
-        ENCAPSULATE(string, ErrorMessage);
-    };
+    ENCAPSULATE(string, ErrorMessage);
+};
 
-    export const optional<Error> Success;
-}
+export const optional<Error> Success;
+} // namespace Lateralus::Platform

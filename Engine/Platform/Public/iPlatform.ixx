@@ -9,11 +9,10 @@ using namespace std;
 
 namespace Lateralus::Platform
 {
-    export
-    class iPlatform
-    {
-    public:
-        virtual ~iPlatform() = default;
-        virtual optional<Error> Init() = 0;
-    };
-}
+export class iPlatform
+{
+public:
+    virtual ~iPlatform() = default;
+    virtual optional<Error> Init() = 0;
+};
+} // namespace Lateralus::Platform

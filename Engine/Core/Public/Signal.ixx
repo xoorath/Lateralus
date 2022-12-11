@@ -9,82 +9,82 @@ using namespace std;
 
 namespace Lateralus
 {
-    export
-    template<typename T>
-    class iSignalSubscribe
+export template <typename T> class iSignalSubscribe
+{
+public:
+    using Delegate = function<T>;
+    using Token = list<Delegate>::iterator;
+
+    virtual Token Add(Delegate func) = 0;
+    virtual bool Remove(Token &token) = 0;
+
+    Token operator+=(function<T> func) { return Add(func); }
+
+    bool operator-=(Token &token) { return Remove(token); }
+};
+
+// Can be used as the LockType template parameter of a signal
+// When you do - the signal will use a mutex to protect it's function list.
+export struct SignalLockMutex
+{
+    auto Lock() { return lock_guard(m_Mutex); }
+    mutex m_Mutex;
+};
+
+// Can be used as the LockType template parameter of a signal
+// When you do - the signal is lockless.
+export struct SignalLockNull
+{
+    auto Lock() { return 0; }
+};
+
+export template <typename T, typename LockType = SignalLockMutex>
+class Signal : public iSignalSubscribe<T>
+{
+public:
+    using SignalSubscribe = iSignalSubscribe<T>;
+    using Delegate = function<T>;
+    using Token = list<Delegate>::iterator;
+
+    Token Add(Delegate func) override
     {
-    public:
-        using Delegate = function<T>;
-        using Token = list<Delegate>::iterator;
+        auto lock = m_Lock.Lock();
+        m_Functions.push_back(func);
+        return --m_Functions.end();
+    }
 
-        virtual Token Add(Delegate func) = 0;
-        virtual bool Remove(Token& token) = 0;
-
-        Token operator += (function<T> func)
-        {
-            return Add(func);
-        }
-
-        bool operator -= (Token& token)
-        {
-            return Remove(token);
-        }
-    };
-
-    // Can be used as the LockType template parameter of a signal
-    // When you do - the signal will use a mutex to protect it's function list.
-    export struct SignalLockMutex { auto Lock() { return lock_guard(m_Mutex); } mutex m_Mutex; };
-
-    // Can be used as the LockType template parameter of a signal
-    // When you do - the signal is lockless.
-    export struct SignalLockNull { auto Lock() { return 0; } };
-
-    export 
-    template<typename T, typename LockType=SignalLockMutex>
-    class Signal : public iSignalSubscribe<T>
+    bool Remove(Token &token) override
     {
-    public:
-        using SignalSubscribe = iSignalSubscribe<T>;
-        using Delegate = function<T>;
-        using Token = list<Delegate>::iterator;
-
-        Token Add(Delegate func) override
+        auto lock = m_Lock.Lock();
+        if (token != m_Functions.end())
         {
-            auto lock = m_Lock.Lock();
-            m_Functions.push_back(func);
-            return --m_Functions.end();
+            m_Functions.erase(token);
+            token = m_Functions.end();
+            return true;
         }
+        return false;
+    }
 
-        bool Remove(Token& token) override
+    template <typename... Args> void Invoke(Args &&...args) const
+    {
+        auto lock = m_Lock.Lock();
+        for (auto const &func : m_Functions)
         {
-            auto lock = m_Lock.Lock();
-            if (token != m_Functions.end())
-            {
-                m_Functions.erase(token);
-                token = m_Functions.end();
-                return true;
-            }
-            return false;
+            func(forward<Args>(args)...);
         }
+    }
 
-        template<typename... Args>
-        void Invoke(Args&&... args) const
+    template <typename... Args> void operator()(Args &&...args) const
+    {
+        auto lock = m_Lock.Lock();
+        for (auto const &func : m_Functions)
         {
-            auto lock = m_Lock.Lock();
-            for (auto const& func : m_Functions)
-            {
-                func(forward<Args>(args)...);
-            }
+            func(forward<Args>(args)...);
         }
+    }
 
-        template<typename... Args>
-        void operator()(Args&&... args) const
-        {
-            Invoke(std::forward<Args>(args)...);
-        }
-
-    private:
-        mutable LockType m_Lock;
-        list<Delegate> m_Functions;
-    };
-}
+private:
+    mutable LockType m_Lock;
+    list<Delegate> m_Functions;
+};
+} // namespace Lateralus

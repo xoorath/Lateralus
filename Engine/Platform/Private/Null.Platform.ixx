@@ -8,14 +8,10 @@ using namespace std;
 
 namespace Lateralus::Platform::Null
 {
-    export
-    class Platform : public iPlatform
-    {
-    public:
-        optional<Error> Init() override
-        {
-            return Error("Null::Platform");
-        }
-    };
+export class Platform : public iPlatform
+{
+public:
+    optional<Error> Init() override { return Error("Null::Platform"); }
+};
 
-}
+} // namespace Lateralus::Platform::Null

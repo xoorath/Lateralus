@@ -8,37 +8,23 @@ using namespace std;
 
 namespace Lateralus::Platform::Null
 {
-    export
-    class Window : public iWindow
+export class Window : public iWindow
+{
+    optional<Error> Create(WindowCreateContext const &ctx) override
     {
-        optional<Error> Create(WindowCreateContext const& ctx) override
-        {
-            return Error("Null::Window::Create");
-        }
+        return Error("Null::Window::Create");
+    }
 
-        bool ShouldClose() const override
-        {
-            return true;
-        };
+    bool ShouldClose() const override { return true; };
 
-        void PollEvents() override
-        {
-        }
+    void PollEvents() override {}
 
-        void Clear() override
-        {
-        }
+    void Clear() override {}
 
-        void NewFrame() override
-        {
-        }
+    void NewFrame() override {}
 
-        void Render() override
-        {
-        }
+    void Render() override {}
 
-        void SwapBuffers() override
-        {
-        }
-    };
-}
+    void SwapBuffers() override {}
+};
+} // namespace Lateralus::Platform::Null

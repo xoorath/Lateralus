@@ -8,20 +8,14 @@ using namespace std;
 
 namespace Lateralus::Platform::Input::Null
 {
-    export
-    class InputProvider : public iInputProvider
-    {
-    public:
-        InputProvider() = default;
-        ~InputProvider() = default;
+export class InputProvider : public iInputProvider
+{
+public:
+    InputProvider() = default;
+    ~InputProvider() = default;
 
-        optional<Error> Init() override
-        {
-            return Error("Not implemented");
-        }
+    optional<Error> Init() override { return Error("Not implemented"); }
 
-        void Shutdown() override
-        {
-        }
-    };
-}
+    void Shutdown() override {}
+};
+} // namespace Lateralus::Platform::Input::Null

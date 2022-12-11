@@ -1,8 +1,8 @@
 module;
 
+#include <Core.Log.h>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h> // Include glfw3.h after our OpenGL definitions
-#include <Core.Log.h>
 
 export module Lateralus.Platform.Windows.Platform;
 
@@ -19,39 +19,35 @@ using namespace std::string_view_literals;
 
 namespace Lateralus::Platform::Windows
 {
-    namespace
+namespace
+{
+void GlfwErrorCallback(int error, const char *description)
+{
+    LOG_ERROR("GLFW Error {}: {}", error, description);
+}
+} // namespace
+
+export class Platform : public iPlatform
+{
+public:
+    optional<Error> Init() override
     {
-        void GlfwErrorCallback(int error, const char* description)
+        glfwSetErrorCallback(GlfwErrorCallback);
+        if (glfwInit() != GLFW_TRUE)
         {
-            LOG_ERROR("GLFW Error {}: {}", error, description);
+            const char *description = nullptr;
+            int code = glfwGetError(&description);
+            if (description != nullptr)
+            {
+                return Error(format("Could not init glfw. Error({}) : {}", code, description));
+            }
+            return Error(format("Could not init glfw. Error code: {}", code));
         }
+
+        return Success;
     }
 
-    export 
-    class Platform : public iPlatform
-    {
-    public:
-        optional<Error> Init() override
-        {
-            glfwSetErrorCallback(GlfwErrorCallback);
-            if (glfwInit() != GLFW_TRUE)
-            {
-                const char* description = nullptr;
-                int code = glfwGetError(&description);
-                if (description != nullptr)
-                {
-                    return Error(format("Could not init glfw. Error({}) : {}", code, description));
-                }
-                return Error(format("Could not init glfw. Error code: {}", code));
-            }
+    ~Platform() override { glfwTerminate(); }
+};
 
-            return Success;
-        }
-
-        ~Platform() override
-        {
-            glfwTerminate();
-        }
-    };
-
-}
+} // namespace Lateralus::Platform::Windows
