@@ -76,6 +76,12 @@ namespace Lateralus
                     conf.AddPublicDependency<ImguiProject>(target, DependencySetting.Default);
                 }
             }
+
+            conf.Defines.Add("SPDLOG_ACTIVE_LEVEL=0");
+            ThirdParty.ReferenceExternal(conf, target, new[] {
+                ThirdParty.ExternalProject.spdlog,
+                ThirdParty.ExternalProject.fmt
+            });
         }
 
         private FileInfo GetCurrentCallingFileInfo()

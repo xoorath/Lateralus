@@ -4,18 +4,25 @@ using System.Reflection;
 using System.IO;
 using System;
 
+using Optimization = Sharpmake.Optimization;
+
 namespace Lateralus
 {
     public abstract class LateralusProjectBase : Project
     {
         public abstract string ProjectName { get; }
 
-        public LateralusProjectBase()
+        public LateralusProjectBase(Optimization? exclude = null)
         {
+            Optimization optimizationTargets = Optimization.Debug | Optimization.Release | Optimization.Retail;
+            if(exclude.HasValue)
+            {
+                optimizationTargets &= ~exclude.Value;
+            }
             AddTargets(new Target(
                 Platform.win64,
                 DevEnv.vs2022,
-                Optimization.Debug | Optimization.Release | Optimization.Retail
+                optimizationTargets
             ));
 
             // Add module extensions 
@@ -70,12 +77,6 @@ namespace Lateralus
                 });
 
             }
-
-            conf.Defines.Add("SPDLOG_ACTIVE_LEVEL=0");
-            ThirdParty.ReferenceExternal(conf, target, new[] { 
-                ThirdParty.ExternalProject.spdlog,
-                ThirdParty.ExternalProject.fmt
-            });
         }
 
         private static string GetLateralusRootDirectory()

@@ -28,6 +28,9 @@ namespace Lateralus
             // This setting exports only modules from the indicated directory
             string publicModuleDirectory = Util.PathMakeStandard(Path.GetFullPath(Path.Combine(projectFileDirectory, "..", "Public")));
             CustomProperties.Add("PublicModuleDirectories", publicModuleDirectory);
+
+            // Tests get their own project that inherits TestProject
+            SourceFilesExcludeRegex.Add($@"\\Tests\\");
         }
 
         public override void ConfigureAll(Configuration conf, Target target)
@@ -68,6 +71,7 @@ namespace Lateralus
             conf.ExportAdditionalLibrariesEvenForStaticLib = true;
             Debug.Assert(conf.Output == Configuration.OutputType.Lib, "above hack only relevant for libs.");
 
+            if (!(this is CoreProject))
             {
                 Func<bool, int> btoi = (bool b) => b ? 1 : 0;
                 bool hasImgui = !target.Optimization.HasFlag(Optimization.Retail);
@@ -98,6 +102,12 @@ namespace Lateralus
                     conf.AddPublicDependency<ImguiProject>(target, DependencySetting.Default);
                 }
             }
+
+            conf.Defines.Add("SPDLOG_ACTIVE_LEVEL=0");
+            ThirdParty.ReferenceExternal(conf, target, new[] {
+                ThirdParty.ExternalProject.spdlog,
+                ThirdParty.ExternalProject.fmt
+            });
         }
 
         private FileInfo GetCurrentCallingFileInfo(out int lineNumber)

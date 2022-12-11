@@ -10,5 +10,8 @@
         "BuildSystem/Shparpmake/properties": true,
 
     },
-    "search.useIgnoreFiles": false
+    "search.useIgnoreFiles": false,
+    "files.associations": {
+        "*.ixx": "cpp"
+    }
 }

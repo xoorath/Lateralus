@@ -30,6 +30,7 @@ namespace Lateralus
             conf.AddProject<HelloWorldProject>(target);
 
             conf.AddProject<FontToSourceProject>(target);
+            conf.AddProject<CoreTestProject>(target);
         }
     }
 }
