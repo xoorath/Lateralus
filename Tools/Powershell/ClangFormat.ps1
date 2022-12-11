@@ -61,6 +61,6 @@ $Sources = GetSourceFilesFromDirectory -Directories @($ApplicationsDir, $Utiliti
 
 # Write-Host $Sources
 
-&$ClangFormat -i $Sources
+&$ClangFormat -style=file -i $Sources
 
 Pop-Location

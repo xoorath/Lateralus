@@ -47,7 +47,7 @@ namespace Lateralus
                 conf.SolutionFolder = "Tests";
             }
 
-            conf.AddPublicDependency<CoreProject>(target);
+            conf.AddPublicDependency<ProjectTypeToTest>(target);
 
             ThirdParty.ReferenceExternal(conf, target, new[] {
                 ThirdParty.ExternalProject.gtest
