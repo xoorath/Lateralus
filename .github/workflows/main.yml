@@ -3,8 +3,6 @@ name: Build and Package
 on:
   push:
     branches: [ master ]
-    paths-ignore:
-      - '**.md'
   pull_request:
     branches: [ master ]
 
@@ -43,4 +41,4 @@ jobs:
           vs-version: 17
 
       - name: Build app for ${{ matrix.configuration }}
-        run: msbuild generated\lateralus_vs2022_win64.sln -t:rebuild -verbosity:diag -property:Configuration=${{ matrix.configuration }}
+        run: msbuild generated\lateralus_vs2022_win64.sln -t:rebuild -property:Configuration=${{ matrix.configuration }}
