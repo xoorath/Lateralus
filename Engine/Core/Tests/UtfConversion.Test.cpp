@@ -1,10 +1,8 @@
-﻿import Lateralus.Core;
+﻿#include PCH_FILE
+
+import Lateralus.Core;
 import Lateralus.Core.UtfConversion;
 import <array>;
-
-#include "Core.h"
-#include "gtest/gtest.h"
-#include <string_view>
 
 using namespace std;
 using namespace std::string_view_literals;

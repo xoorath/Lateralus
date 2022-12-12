@@ -1,8 +1,6 @@
+#include PCH_FILE
+
 import Lateralus.Core;
-
-#include "Core.h"
-
-#include "gtest/gtest.h"
 
 namespace Lateralus::Core::Tests
 {

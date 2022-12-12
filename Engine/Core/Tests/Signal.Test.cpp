@@ -1,8 +1,5 @@
+#include PCH_FILE
 import Lateralus.Core.Signal;
-
-#include "gtest/gtest.h"
-#include <atomic>
-#include <thread>
 
 using namespace std;
 

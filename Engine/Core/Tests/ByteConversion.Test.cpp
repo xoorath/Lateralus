@@ -1,6 +1,6 @@
-import Lateralus.Core.ByteConversion;
+#include PCH_FILE
 
-#include "gtest/gtest.h"
+import Lateralus.Core.ByteConversion;
 
 namespace Lateralus::Core::Tests
 {
