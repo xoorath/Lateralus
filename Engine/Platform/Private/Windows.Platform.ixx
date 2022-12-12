@@ -1,6 +1,6 @@
 module;
 
-#include <Core.Log.h>
+//#include <Core.Log.h>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h> // Include glfw3.h after our OpenGL definitions
 
@@ -23,7 +23,7 @@ namespace
 {
 void GlfwErrorCallback(int error, const char *description)
 {
-    LOG_ERROR("GLFW Error {}: {}", error, description);
+    //LOG_ERROR("GLFW Error {}: {}", error, description);
 }
 } // namespace
 
@@ -47,7 +47,10 @@ public:
         return Success;
     }
 
-    ~Platform() override { glfwTerminate(); }
+    ~Platform() override
+    { 
+        glfwTerminate();
+    }
 };
 
 } // namespace Lateralus::Platform::Windows

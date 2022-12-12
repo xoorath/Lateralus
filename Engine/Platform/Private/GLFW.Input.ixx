@@ -1,8 +1,10 @@
 module;
-#if USE_GLFW_WINDOW
+
 #include <GLFW/glfw3.h>
 
 export module Lateralus.Platform.GLFW.Input;
+
+#if USE_GLFW_WINDOW
 
 import Lateralus.Core;
 import Lateralus.Core.UtfConversion;

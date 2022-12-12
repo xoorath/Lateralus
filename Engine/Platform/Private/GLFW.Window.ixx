@@ -1,15 +1,18 @@
 module;
-#if USE_GLFW_WINDOW
 
 #if IMGUI_SUPPORT
 #include <imgui.h>
 #endif
 
-#include <Core.Log.h>
+#include <Core.h>
+//#include <Core.Log.h>
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h> // Include glfw3.h after our OpenGL definitions
 
 export module Lateralus.Platform.GLFW.Window;
+
+#if USE_GLFW_WINDOW
 
 import Lateralus.Platform.Error;
 #if IMGUI_SUPPORT
@@ -23,7 +26,9 @@ import Lateralus.Platform.GLFW.Input;
 import Lateralus.Platform.iPlatform;
 import Lateralus.Platform.iWindow;
 import Lateralus.Core;
+
 import <atomic>;
+import <format>;
 import <mutex>;
 import <optional>;
 import <string_view>;
@@ -108,14 +113,14 @@ public:
         {
             if (!IMGUI_CHECKVERSION())
             {
-                LOG_ERROR("Could not init imgui: IMGUI_CHECKVERSION()");
+                //LOG_ERROR("Could not init imgui: IMGUI_CHECKVERSION()");
                 break;
             }
 
             m_ImguiContext = ImGui::CreateContext();
             if (m_ImguiContext == nullptr)
             {
-                LOG_ERROR("Could not init imgui: CreateContext()");
+                //LOG_ERROR("Could not init imgui: CreateContext()");
                 break;
             }
 
@@ -126,8 +131,7 @@ public:
                 implGlfw = make_shared<ImplGLFW>();
                 if (auto err = implGlfw->Init(m_Window, m_Input); err.has_value())
                 {
-                    LOG_ERROR("Could not init imgui: implGlfw->Init() {}",
-                              err.value().GetErrorMessage());
+                    //LOG_ERROR("Could not init imgui: implGlfw->Init() {}", err.value().GetErrorMessage());
                     break;
                 }
                 m_Impls.push_back(move(implGlfw));
@@ -137,8 +141,7 @@ public:
                 shared_ptr<ImplOpenGL> implOpenGL = make_shared<ImplOpenGL>();
                 if (auto err = implOpenGL->Init(k_GlslVersion); err.has_value())
                 {
-                    LOG_ERROR("Could not init imgui: implOpenGL->Init() {}",
-                              err.value().GetErrorMessage());
+                    //LOG_ERROR("Could not init imgui: implOpenGL->Init() {}", err.value().GetErrorMessage());
                     break;
                 }
                 m_Impls.push_back(move(implOpenGL));

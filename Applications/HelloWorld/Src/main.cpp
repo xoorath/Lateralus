@@ -1,9 +1,10 @@
-#include "file_manager.h"
 #include "imgui.h"
 #include "opengl_shader.h"
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <optional>
+#include <sstream>
 #include <stdio.h>
 #include <vector>
 
@@ -23,6 +24,24 @@ import Lateralus.Platform.iPlatform;
 import Lateralus.Platform.iWindow;
 
 #define PI 3.14159265358979323846
+
+std::string ReadFileToMemory(const std::string &filename)
+{
+    std::ifstream file;
+    file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    std::stringstream file_stream;
+    try
+    {
+        file.open(filename.c_str());
+        file_stream << file.rdbuf();
+        file.close();
+    }
+    catch (std::ifstream::failure e)
+    {
+        // LATERALUS_LOG("Error reading Shader File!");
+    }
+    return file_stream.str();
+}
 
 void render_conan_logo()
 {
@@ -137,8 +156,8 @@ int main(int, char **)
 
     // init shader
     Shader triangle_shader;
-    triangle_shader.init(FileManager::read("Assets/simple-shader.vs"),
-                         FileManager::read("Assets/simple-shader.fs"));
+    triangle_shader.init(ReadFileToMemory("Assets/simple-shader.vs"),
+                         ReadFileToMemory("Assets/simple-shader.fs"));
 
     // Setup Dear ImGui context
 

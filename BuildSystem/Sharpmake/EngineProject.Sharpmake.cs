@@ -22,7 +22,8 @@ namespace Lateralus
 
             // AllProjectBMIsArePublic: "All Modules Are Public" from the VC++ Directories project page
             // This allows us to specifically define the API of each engine library using the public/private folders & exports.
-            CustomProperties.Add("AllProjectBMIsArePublic", "false");
+            // #bug #hack Unfortunately in VS 2022 version 17.4 a bug was introduced where module resolution fails without this set to true.
+            CustomProperties.Add("AllProjectBMIsArePublic", "true");
 
             // PublicModuleDirectories: "Public C++ Module Directories" from the VC++ Directories project page
             // This setting exports only modules from the indicated directory
