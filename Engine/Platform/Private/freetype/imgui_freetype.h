@@ -2,7 +2,7 @@
 // (headers)
 
 #pragma once
-
+#if IMGUI_SUPPORT
 #include "imgui.h" // IMGUI_API
 
 // Forward declarations
@@ -69,3 +69,4 @@ static inline bool BuildFontAtlas(ImFontAtlas *atlas, unsigned int flags = 0)
 }
 #endif
 } // namespace ImGuiFreeType
+#endif

@@ -1,4 +1,6 @@
+#if IMGUI_SUPPORT
 #include "imgui.h"
+#endif
 #include "opengl_shader.h"
 #include <fstream>
 #include <iostream>
@@ -19,6 +21,7 @@
 
 import Lateralus.Core.Signal;
 import Lateralus.Core.ByteConversion;
+import Lateralus.Core.UtfConversion;
 import Lateralus.Platform;
 import Lateralus.Platform.iPlatform;
 import Lateralus.Platform.iWindow;
@@ -45,6 +48,7 @@ std::string ReadFileToMemory(const std::string &filename)
 
 void render_conan_logo()
 {
+#if IMGUI_SUPPORT
     ImDrawList *draw_list = ImGui::GetWindowDrawList();
     float sz = 300.0f;
     static ImVec4 col1 = ImVec4(68.0 / 255.0, 83.0 / 255.0, 89.0 / 255.0, 1.0f);
@@ -71,6 +75,7 @@ void render_conan_logo()
                               ImVec2(x + 0.2 * sz, y + 0.25 * sz),
                               ImVec2(x + 0.3 * sz, y + 0.35 * sz),
                               ImVec2(x + 0.49 * sz, y + 0.38 * sz), ImColor(col4), 10, 18);
+#endif
 }
 
 void create_triangle(unsigned int &vbo, unsigned int &vao, unsigned int &ebo)
@@ -159,12 +164,6 @@ int main(int, char **)
     triangle_shader.init(ReadFileToMemory("Assets/simple-shader.vs"),
                          ReadFileToMemory("Assets/simple-shader.fs"));
 
-    // Setup Dear ImGui context
-
-    // Setup Dear ImGui style
-    // ImGui::StyleColorsDark();
-
-    // display a first frame quickly (better than a blank frame)
 
     char buff[2048] = {0};
     while (!window->ShouldClose())
@@ -182,6 +181,7 @@ int main(int, char **)
         glBindVertexArray(0);
 
         // render your GUI
+#if IMGUI_SUPPORT
         ImGui::Begin("Triangle Position/Color");
         static float rotation = 0.0;
         ImGui::SliderFloat("rotation", &rotation, 0, 2 * PI);
@@ -204,7 +204,7 @@ int main(int, char **)
         ImGui::End();
 
         ImGui::ShowStyleEditor();
-
+#endif
         window->Render();
         window->SwapBuffers();
     }

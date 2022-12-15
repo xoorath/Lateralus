@@ -40,7 +40,7 @@
 
 // FIXME: cfg.OversampleH, OversampleV are not supported (but perhaps not so necessary with this
 // rasterizer).
-
+#if IMGUI_SUPPORT
 #include "imgui_freetype.h"
 #include "imgui_internal.h" // ImMin,ImMax,ImFontAtlasBuild*,
 #include <ft2build.h>
@@ -869,3 +869,4 @@ void ImGuiFreeType::SetAllocatorFunctions(void *(*alloc_func)(size_t sz, void *u
     GImGuiFreeTypeFreeFunc = free_func;
     GImGuiFreeTypeAllocatorUserData = user_data;
 }
+#endif
