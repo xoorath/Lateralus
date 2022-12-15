@@ -30,8 +30,8 @@ foreach($dir in (Get-ChildItem $ProjectRoot -Recurse -Directory | Where-Object {
 Remove-Item -Path ([System.IO.Path]::Combine($ProjectRoot, "Tools", "Powershell", "tmp")) -Force -Recurse -ErrorAction SilentlyContinue
 
 # Delete the sharpmake build directories and solution
-Remove-Item -Path ([System.IO.Path]::Combine($ProjectRoot, "BuildSystem", "Sharpmake", "tmp")) -Force -Recurse -ErrorAction SilentlyContinue
-Remove-Item -Path ([System.IO.Path]::Combine($ProjectRoot, "BuildSystem",  "Sharpmake", "Sharpmake.sln")) -Force -ErrorAction SilentlyContinue
+Remove-Item -Path ([System.IO.Path]::Combine($ProjectRoot, "ThirdParty", "Sharpmake", "tmp")) -Force -Recurse -ErrorAction SilentlyContinue
+Remove-Item -Path ([System.IO.Path]::Combine($ProjectRoot, "ThirdParty",  "Sharpmake", "Sharpmake.sln")) -Force -ErrorAction SilentlyContinue
 
 # Delete all imgui.ini files
 foreach($dir in (Get-ChildItem $ProjectRoot -Recurse -File | Where-Object {$_.name -like "imgui.ini"} | ForEach-Object { $_.fullname }))

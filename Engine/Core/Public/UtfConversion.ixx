@@ -37,8 +37,8 @@ export constexpr array<char8_t, 4> UTF32_to_UTF8(char32_t codepoint, usz &length
     {
         lengthOut = 2;
         // codepoint: 00000000'00000000'00000yyy'yyxxxxxx
-        // result:    11yyyyyy'10xxxxxx'00000000'00000000
-        result[0] = 0b11000000 | (codepoint >> 6);         // 10yyyyyy;
+        // result:    110yyyyy'10xxxxxx'00000000'00000000
+        result[0] = 0b11000000 | (codepoint >> 6);         // 110yyyyy;
         result[1] = 0b10000000 | (codepoint & 0b00111111); // 10xxxxxx;
         result[2] = 0;
         result[3] = 0;
@@ -87,5 +87,34 @@ export u8string UTF32_to_u8string(char32_t codepoint)
     usz size;
     array<char8_t, 4> uncapped = UTF32_to_UTF8(codepoint, size);
     return size != 0 ? u8string(uncapped.begin(), uncapped.begin() + size) : u8string();
+}
+
+export string u8string_to_string(u8string_view u8str)
+{
+    string result;
+    result.reserve(u8str.length());
+    for (size_t i = 0; i < u8str.size(); ++i)
+    {
+        if ((u8str[i] & (char8_t)0b11110000) == (char8_t)0b11110000)
+        {
+            i += 3;
+            result += '?';
+        }
+        else if ((u8str[i] & (char8_t)0b11100000) == (char8_t)0b11100000)
+        {
+            i += 2;
+            result += '?';
+        }
+        else if ((u8str[i] & (char8_t)0b11000000) == (char8_t)0b11000000)
+        {
+            i += 1;
+            result += '?';
+        }
+        else
+        {
+            result += u8str[i];
+        }
+    }
+    return result;
 }
 } // namespace Lateralus

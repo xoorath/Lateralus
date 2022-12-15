@@ -87,40 +87,48 @@ if($Nuke)
 }
 
 # /
-$ProjectRootDir = [System.IO.Path]::GetFullPath([System.IO.Path]::Combine($ScriptDir, "..", ".."));
+$ProjectRootDir = [IO.Path]::GetFullPath([IO.Path]::Combine($ScriptDir, "..", ".."));
 # /Tools
-$ToolsDir = [System.IO.Path]::Combine($ProjectRootDir, "Tools");
+$ToolsDir = [IO.Path]::Combine($ProjectRootDir, "Tools");
 # /generated
-$GeneratedDir = [System.IO.Path]::Combine($ProjectRootDir, "generated");
+$GeneratedDir = [IO.Path]::Combine($ProjectRootDir, "generated");
 # /generated/lateralus_vs2022_win64.sln
-$LateralusSolution = [System.IO.Path]::Combine($GeneratedDir, "lateralus_vs2022_win64.sln");
+$LateralusSolution = [IO.Path]::Combine($GeneratedDir, "lateralus_vs2022_win64.sln");
 # /generated
 $DebugSlnDirectory = $GeneratedDir;
 # /generated/lateralus_vs2022_win64.sln
-$DebugSln = [System.IO.Path]::Combine($DebugSlnDirectory, "sharpmake_debugsolution.vs2022.sln");
+$DebugSln = [IO.Path]::Combine($DebugSlnDirectory, "sharpmake_debugsolution.vs2022.sln");
 # /BuildSystem
-$BuildSystemDir = [System.IO.Path]::GetFullPath([System.IO.Path]::Combine($ProjectRootDir, "BuildSystem"));
+$BuildSystemDir = [IO.Path]::GetFullPath([IO.Path]::Combine($ProjectRootDir, "BuildSystem"));
 # /ThirdParty
-$ThirdPartyDir = [System.IO.Path]::GetFullPath([System.IO.Path]::Combine($ProjectRootDir, "ThirdParty"));
+$ThirdPartyDir = [IO.Path]::GetFullPath([IO.Path]::Combine($ProjectRootDir, "ThirdParty"));
 # /ThirdParty/Sharpmake
-$SharpmakeDir = [System.IO.Path]::Combine($ThirdPartyDir, "Sharpmake");
+$SharpmakeDir = [IO.Path]::Combine($ThirdPartyDir, "Sharpmake");
 # /ThirdParty/Sharpmake/bootstrap.bat
-$SharpmakeBootstrap = [System.IO.Path]::Combine($SharpmakeDir, "bootstrap.bat");
+$SharpmakeBootstrap = [IO.Path]::Combine($SharpmakeDir, "bootstrap.bat");
 # /ThirdParty/Sharpmake/CompileSharpmake.bat
-$SharpmakeCompile = [System.IO.Path]::Combine($SharpmakeDir, "CompileSharpmake.bat");
+$SharpmakeCompile = [IO.Path]::Combine($SharpmakeDir, "CompileSharpmake.bat");
 # /ThirdParty/Sharpmake/Sharpmake.sln
-$SharpmakeSolution = [System.IO.Path]::Combine($SharpmakeDir, "Sharpmake.sln");
+$SharpmakeSolution = [IO.Path]::Combine($SharpmakeDir, "Sharpmake.sln");
 
-$SharpmakeConfiguration = If($Debug) {"Debug"} else {"release"};
+$SharpmakeConfiguration = "";
+if($Debug)
+{
+    $SharpmakeConfiguration="Debug";
+}
+else
+{
+    $SharpmakeConfiguration="Release";
+}
 # /ThirdParty/Sharpmake/tmp/bin/{config}/net6.0/SharpMake.Application.exe
-$SharpmakeApplication = [System.IO.Path]::Combine($SharpmakeDir, "tmp", "bin", $SharpmakeConfiguration, "net6.0", "SharpMake.Application.exe");
+$SharpmakeApplication = [IO.Path]::Combine($SharpmakeDir, "tmp", "bin", $SharpmakeConfiguration, "net6.0", "SharpMake.Application.exe");
 
 # input sharpmake file directories
 $SharpmakeInputDirectories = @(
     $BuildSystemDir,
-    [System.IO.Path]::Combine($ProjectRootDir, "Applications"),
-    [System.IO.Path]::Combine($ToolsDir, "Utilities"),
-    [System.IO.Path]::Combine($ProjectRootDir, "Engine"),
+    [IO.Path]::Combine($ProjectRootDir, "Applications"),
+    [IO.Path]::Combine($ToolsDir, "Utilities"),
+    [IO.Path]::Combine($ProjectRootDir, "Engine"),
     $ThirdPartyDir
 );
 # Directories to ignore when searching for sharpmake files.
