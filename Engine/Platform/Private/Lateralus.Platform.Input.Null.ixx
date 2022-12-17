@@ -1,4 +1,4 @@
-export module Lateralus.Platform.Null.Input;
+export module Lateralus.Platform.Input.Null;
 
 import Lateralus.Platform.Error;
 import Lateralus.Platform.Input;

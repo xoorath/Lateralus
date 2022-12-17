@@ -60,6 +60,12 @@ namespace Lateralus
                 Options.Vc.Compiler.RTTI.Disable
             });
 
+            conf.Defines.Add(new[] {
+                "_CRT_SECURE_NO_WARNINGS=1",
+                "NOMINMAX=1",
+                "WIN32_LEAN_AND_MEAN=1"
+            });
+
             {
                 bool isDesktop = 
                     target.Platform.HasFlag(Platform.win64) 

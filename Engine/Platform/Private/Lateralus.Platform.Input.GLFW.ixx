@@ -2,7 +2,7 @@ module;
 
 #include <GLFW/glfw3.h>
 
-export module Lateralus.Platform.GLFW.Input;
+export module Lateralus.Platform.Input.GLFW;
 
 #if USE_GLFW_WINDOW
 
@@ -14,6 +14,7 @@ import <array>;
 import <optional>;
 
 using namespace std;
+using namespace Lateralus::Core;
 
 namespace Lateralus::Platform::Input::GLFW
 {

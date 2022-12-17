@@ -49,6 +49,8 @@ namespace Lateralus
                 Path.Combine(projectFileDirectory, "Private")
             });
             conf.Output = Configuration.OutputType.Lib;
+            
+            conf.Options.Add(Options.Vc.Compiler.EnhancedInstructionSet.AdvancedVectorExtensions);
 
             // Dependency configuration
             if (!(this is CoreProject))

@@ -7,24 +7,26 @@ module;
 #include <Core.h>
 //#include <Core.Log.h>
 
+#if USE_GLFW_WINDOW
 #include <GL/glew.h>
 #include <GLFW/glfw3.h> // Include glfw3.h after our OpenGL definitions
+#endif
 
-export module Lateralus.Platform.GLFW.Window;
+export module Lateralus.Platform.Window.GLFW;
 
 #if USE_GLFW_WINDOW
 
 import Lateralus.Platform.Error;
 #if IMGUI_SUPPORT
-import Lateralus.Platform.Imgui.iImpl;
-import Lateralus.Platform.Imgui.GLFW;
-import Lateralus.Platform.Imgui.OpenGL;
-import Lateralus.Platform.Imgui.Theme;
+import Lateralus.Platform.ImGui.Impl;
+import Lateralus.Platform.ImGui.GLFW;
+import Lateralus.Platform.ImGui.OpenGL;
+import Lateralus.Platform.ImGui.Theme;
 #endif
 import Lateralus.Platform.Input;
-import Lateralus.Platform.GLFW.Input;
-import Lateralus.Platform.iPlatform;
-import Lateralus.Platform.iWindow;
+import Lateralus.Platform.Input.GLFW;
+import Lateralus.Platform.Platform;
+import Lateralus.Platform.Window;
 import Lateralus.Core;
 
 import <atomic>;
@@ -37,8 +39,9 @@ import <vector>;
 using namespace std;
 using namespace std::string_view_literals;
 
+using namespace Lateralus::Core;
 #if IMGUI_SUPPORT
-using namespace Lateralus::Platform::Imgui;
+using namespace Lateralus::Platform::ImGui;
 #endif
 using namespace Lateralus::Platform::Input;
 using namespace Lateralus::Platform::Input::GLFW;
@@ -111,14 +114,15 @@ public:
         // We log an error here instead of returning an error because imgui failing is recoverable.
         do
         {
+            namespace ImGui = ::ImGui;
             if (!IMGUI_CHECKVERSION())
             {
                 //LOG_ERROR("Could not init imgui: IMGUI_CHECKVERSION()");
                 break;
             }
 
-            m_ImguiContext = ImGui::CreateContext();
-            if (m_ImguiContext == nullptr)
+            m_ImGuiContext = ImGui::CreateContext();
+            if (m_ImGuiContext == nullptr)
             {
                 //LOG_ERROR("Could not init imgui: CreateContext()");
                 break;
@@ -179,7 +183,7 @@ public:
         {
             impl->NewFrame();
         }
-        ImGui::NewFrame();
+        ::ImGui::NewFrame();
 #endif
     }
 
@@ -187,8 +191,8 @@ public:
     void Render() override
     {
 #if IMGUI_SUPPORT
-        ImGui::EndFrame();
-        ImGui::Render();
+        ::ImGui::EndFrame();
+        ::ImGui::Render();
         for (auto const &impl : m_Impls)
         {
             impl->Render();
@@ -216,9 +220,9 @@ private:
         glfwMakeContextCurrent(m_Window);
 
 #if IMGUI_SUPPORT
-        if (m_ImguiContext != nullptr)
+        if (m_ImGuiContext != nullptr)
         {
-            ImGui::SetCurrentContext(m_ImguiContext);
+            ::ImGui::SetCurrentContext(m_ImGuiContext);
         }
 #endif
 
@@ -259,14 +263,14 @@ private:
         }
         m_Impls.clear();
 
-        if (m_ImguiContext == nullptr)
+        if (m_ImGuiContext == nullptr)
         {
             problems = Error("Unable to shutdown imgui: imgui context missing.");
         }
         else
         {
-            ImGui::DestroyContext(m_ImguiContext);
-            m_ImguiContext = nullptr;
+            ::ImGui::DestroyContext(m_ImGuiContext);
+            m_ImGuiContext = nullptr;
         }
 #endif
         if (m_Input != nullptr)
@@ -282,7 +286,7 @@ private:
     shared_ptr<Input::iInputProvider> m_Input;
 
 #if IMGUI_SUPPORT
-    ImGuiContext *m_ImguiContext = nullptr;
+    ImGuiContext *m_ImGuiContext = nullptr;
     vector<shared_ptr<iImpl>> m_Impls;
 #endif
 };

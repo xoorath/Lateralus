@@ -62,11 +62,11 @@ SOFTWARE.
 
 #endif
 
-export module Lateralus.Platform.Imgui.OpenGL;
+export module Lateralus.Platform.ImGui.OpenGL;
 
 #if IMGUI_SUPPORT
 
-import Lateralus.Platform.Imgui.iImpl;
+import Lateralus.Platform.ImGui.Impl;
 import Lateralus.Platform.Error;
 
 #pragma warning(push)
@@ -79,7 +79,7 @@ import <string>;
 
 using namespace std;
 
-namespace Lateralus::Platform::Imgui
+namespace Lateralus::Platform::ImGui
 {
 export class ImplOpenGL : public iImpl
 {
@@ -105,12 +105,12 @@ public:
     }
     void Shutdown() override { DestroyDeviceObjects(); }
 
-    void Render() override { RenderDrawData(ImGui::GetDrawData()); }
+    void Render() override { RenderDrawData(::ImGui::GetDrawData()); }
 
     bool CreateFontsTexture()
     {
         // Build texture atlas
-        ImGuiIO &io = ImGui::GetIO();
+        ImGuiIO &io = ::ImGui::GetIO();
         unsigned char *pixels;
         int width, height;
         io.Fonts->GetTexDataAsRGBA32(
@@ -147,7 +147,7 @@ public:
     {
         if (m_FontTexture)
         {
-            ImGuiIO &io = ImGui::GetIO();
+            ImGuiIO &io = ::ImGui::GetIO();
             glDeleteTextures(1, &m_FontTexture);
             io.Fonts->TexID = 0;
             m_FontTexture = 0;
@@ -287,7 +287,7 @@ private:
         m_GlVersion = major * 1000 + minor;
 
         // Setup back-end capabilities flags
-        ImGuiIO &io = ImGui::GetIO();
+        ImGuiIO &io = ::ImGui::GetIO();
         io.BackendRendererName = "Lateralus::Platform::ImGui::OpenGL";
 
         if (!m_ShaderHandle)
@@ -580,6 +580,6 @@ private:
         m_AttribLocationVtxColor = 0; // Vertex attributes location
     unsigned int m_VboHandle = 0, m_ElementsHandle = 0;
 };
-} // namespace Lateralus::Platform::Imgui
+} // namespace Lateralus::Platform::ImGui
 
 #endif

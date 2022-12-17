@@ -1,7 +1,7 @@
-export module Lateralus.Platform.Null.Platform;
+export module Lateralus.Platform.Platform.Null;
 
 import Lateralus.Platform.Error;
-import Lateralus.Platform.iPlatform;
+import Lateralus.Platform.Platform;
 import <optional>;
 
 using namespace std;

@@ -30,7 +30,7 @@ namespace Lateralus
             // Project configuration
             conf.IncludePaths.AddRange(m_ProjectSource);
             conf.Output = Configuration.OutputType.Exe;
-
+            conf.Options.Add(Options.Vc.Compiler.EnhancedInstructionSet.AdvancedVectorExtensions);
             // Dependancy configuration
             conf.AddPublicDependency<CoreProject>(target);
             conf.AddPublicDependency<PlatformProject>(target);

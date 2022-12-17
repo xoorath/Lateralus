@@ -5,7 +5,7 @@ export module Lateralus.Platform.Font.NotoSansRegular;
 //
 //
 // File: ./Assets/NotoSans-Regular.ttf (556216 bytes 348210 compressed)
-// Exported using FontToSource - a Lateralus tool based on Dear Imgui's binary_to_compressed_c.cpp
+// Exported using FontToSource - a Lateralus tool based on Dear ImGui's binary_to_compressed_c.cpp
 // utility.
 namespace Lateralus::Platform::Font
 {

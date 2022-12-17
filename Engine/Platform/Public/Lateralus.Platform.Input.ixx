@@ -7,12 +7,14 @@ export module Lateralus.Platform.Input;
 import <array>;
 import <functional>;
 import <optional>;
+import <string>;
 
 import Lateralus.Core;
 import Lateralus.Core.Signal;
 import Lateralus.Platform.Error;
 
 using namespace std;
+using namespace Lateralus::Core;
 
 namespace Lateralus::Platform
 {

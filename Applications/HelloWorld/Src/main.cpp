@@ -23,8 +23,10 @@ import Lateralus.Core.Signal;
 import Lateralus.Core.ByteConversion;
 import Lateralus.Core.UtfConversion;
 import Lateralus.Platform;
-import Lateralus.Platform.iPlatform;
-import Lateralus.Platform.iWindow;
+import Lateralus.Platform.Platform;
+import Lateralus.Platform.Window;
+
+using namespace Lateralus::Core;
 
 #define PI 3.14159265358979323846
 

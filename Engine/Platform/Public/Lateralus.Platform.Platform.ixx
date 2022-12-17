@@ -1,4 +1,4 @@
-export module Lateralus.Platform.iPlatform;
+export module Lateralus.Platform.Platform;
 
 import <optional>;
 

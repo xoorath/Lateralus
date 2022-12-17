@@ -2,12 +2,14 @@ module;
 #if IMGUI_SUPPORT
 #include "imgui.h"
 #endif
-export module Lateralus.Platform.Imgui.Theme;
+export module Lateralus.Platform.ImGui.Theme;
 #if IMGUI_SUPPORT
 using namespace std;
 import Lateralus.Core;
 
-namespace Lateralus::Platform::Imgui
+using namespace Lateralus::Core;
+
+namespace Lateralus::Platform::ImGui
 {
 
 // https://github.com/ocornut/imgui/issues/707#issuecomment-670976818
@@ -17,7 +19,7 @@ export void ApplyTheme()
         return ImVec4((float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f, 1.0f);
     };
 
-    auto &style = ImGui::GetStyle();
+    auto &style = ::ImGui::GetStyle();
     ImVec4 *colors = style.Colors;
 
     const ImVec4 bgColor = ColorFromBytes(37, 37, 38);
@@ -88,6 +90,6 @@ export void ApplyTheme()
     style.ScrollbarRounding = 0.0f;
     style.TabRounding = 0.0f;
 }
-} // namespace Lateralus::Platform::Imgui
+} // namespace Lateralus::Platform::ImGui
 
 #endif

@@ -1,5 +1,4 @@
 export module Lateralus.Core.Signal;
-
 import <functional>;
 import <list>;
 import <mutex>;
@@ -7,7 +6,7 @@ import Lateralus.Core;
 
 using namespace std;
 
-namespace Lateralus
+namespace Lateralus::Core
 {
 export template <typename T> class iSignalSubscribe
 {

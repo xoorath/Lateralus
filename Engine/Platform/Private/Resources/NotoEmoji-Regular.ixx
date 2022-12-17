@@ -5,7 +5,7 @@ export module Lateralus.Platform.Font.NotoEmojiRegular;
 //
 //
 // File: ./Assets/NotoEmoji-Regular.ttf (878892 bytes 687852 compressed)
-// Exported using FontToSource - a Lateralus tool based on Dear Imgui's binary_to_compressed_c.cpp
+// Exported using FontToSource - a Lateralus tool based on Dear ImGui's binary_to_compressed_c.cpp
 // utility.
 namespace Lateralus::Platform::Font
 {

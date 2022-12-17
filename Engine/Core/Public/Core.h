@@ -107,15 +107,15 @@ namespace Lateralus::Core::Internal
 template <size_t S> struct EnumIntSized;
 template <> struct EnumIntSized<1>
 {
-    using type = Lateralus::int8;
+    using type = Lateralus::Core::int8;
 };
 template <> struct EnumIntSized<2>
 {
-    using type = Lateralus::int16;
+    using type = Lateralus::Core::int16;
 };
 template <> struct EnumIntSized<4>
 {
-    using type = Lateralus::int32;
+    using type = Lateralus::Core::int32;
 };
 template <class T> struct EnumInt
 {

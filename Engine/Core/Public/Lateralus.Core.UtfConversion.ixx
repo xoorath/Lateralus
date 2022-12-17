@@ -6,7 +6,7 @@ import Lateralus.Core;
 
 using namespace std;
 
-namespace Lateralus
+namespace Lateralus::Core
 {
 
 // Written by referencing https://gist.github.com/Miouyouyou/864130e8734afe3f806512b14022226f

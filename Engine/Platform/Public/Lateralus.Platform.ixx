@@ -3,15 +3,18 @@ export module Lateralus.Platform;
 import <memory>;
 import <optional>;
 
-import Lateralus.Platform.iPlatform;
-import Lateralus.Platform.iWindow;
-
+import Lateralus.Platform.Platform;
 #if PLATFORM_WIN64
-import Lateralus.Platform.Windows.Platform;
-import Lateralus.Platform.GLFW.Window;
+import Lateralus.Platform.Platform.Windows;
 #else
-import Lateralus.Platform.Null.Platform;
-import Lateralus.Platform.Null.Window;
+import Lateralus.Platform.Platform.Null;
+#endif
+
+import Lateralus.Platform.Window;
+#if USE_GLFW_WINDOW
+import Lateralus.Platform.Window.GLFW;
+#else
+import Lateralus.Platform.Window.Null;
 #endif
 
 using namespace std;

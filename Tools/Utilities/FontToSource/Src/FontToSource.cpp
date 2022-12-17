@@ -1,7 +1,6 @@
 // Based heavily off of binary_to_compressed_c.cpp from imgui
 // See main.cpp for usage.
 
-#define _CRT_SECURE_NO_WARNINGS
 #include <assert.h>
 #include <fstream>
 #include <iomanip>
@@ -225,7 +224,7 @@ bool binary_to_compressed_c(string_view inputParam, string_view outputParam,
             outputFile << "//\n//\n";
             outputFile << "// File: " << inputParam << " (" << inputFileContents.size() << " bytes "
                        << compressed.size() << " compressed)\n";
-            outputFile << "// Exported using FontToSource - a Lateralus tool based on Dear Imgui's "
+            outputFile << "// Exported using FontToSource - a Lateralus tool based on Dear ImGui's "
                           "binary_to_compressed_c.cpp utility.\n";
 
             string namespaceTabbing;
@@ -255,7 +254,7 @@ bool binary_to_compressed_c(string_view inputParam, string_view outputParam,
             for (int i = 0; i < compressed.size(); i += 4)
             {
                 unsigned int d = *(unsigned int *)(compressed.data() + i);
-                if ((column++ % 12) == 0)
+                if ((column++ % 8) == 0)
                 {
                     outputFile << "\n    " << namespaceTabbing;
                 }

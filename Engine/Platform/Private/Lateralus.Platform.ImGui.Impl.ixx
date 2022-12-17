@@ -1,12 +1,12 @@
 #if IMGUI_SUPPORT
-export module Lateralus.Platform.Imgui.iImpl;
+export module Lateralus.Platform.ImGui.Impl;
 
 import Lateralus.Platform.Error;
 import <optional>;
 
 using namespace std;
 
-namespace Lateralus::Platform::Imgui
+namespace Lateralus::Platform::ImGui
 {
 export class iImpl
 {
@@ -18,5 +18,5 @@ public:
     virtual void NewFrame() {}
     virtual void Render() {}
 };
-} // namespace Lateralus::Platform::Imgui
+} // namespace Lateralus::Platform::ImGui
 #endif

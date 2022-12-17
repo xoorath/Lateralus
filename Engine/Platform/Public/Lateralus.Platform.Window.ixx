@@ -2,16 +2,17 @@ module;
 
 #include <Core.h>
 
-export module Lateralus.Platform.iWindow;
+export module Lateralus.Platform.Window;
 
 import Lateralus.Core;
 import Lateralus.Platform.Error;
-import Lateralus.Platform.iPlatform;
+import Lateralus.Platform.Platform;
 import <memory>;
 import <optional>;
 import <string_view>;
 
 using namespace std;
+using namespace Lateralus::Core;
 
 namespace Lateralus::Platform
 {

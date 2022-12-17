@@ -1,7 +1,7 @@
-export module Lateralus.Platform.Null.Window;
+export module Lateralus.Platform.Window.Null;
 
 import Lateralus.Platform.Error;
-import Lateralus.Platform.iWindow;
+import Lateralus.Platform.Window;
 import <optional>;
 
 using namespace std;

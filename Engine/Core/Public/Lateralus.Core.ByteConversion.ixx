@@ -6,7 +6,7 @@ import Lateralus.Core;
 
 using namespace std;
 
-namespace Lateralus
+namespace Lateralus::Core
 {
 export constexpr uint64 Kilobytes_to_Bytes(uint64 kilobytes)
 {

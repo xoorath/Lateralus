@@ -5,7 +5,7 @@ import <string>;
 
 using namespace std;
 
-namespace Lateralus
+namespace Lateralus::Core
 {
 export using int8 = int8_t;
 export using int16 = int16_t;
@@ -21,4 +21,4 @@ export using float64 = double;
 
 export using sz = ptrdiff_t;
 export using usz = size_t;
-} // namespace Lateralus
+} // namespace Lateralus::Core

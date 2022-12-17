@@ -51,23 +51,24 @@ SOFTWARE.
 #include "freetype/imgui_freetype.h"
 #include "imgui.h"
 #endif
-export module Lateralus.Platform.Imgui.GLFW;
-#if IMGUI_SUPPORT
+export module Lateralus.Platform.ImGui.GLFW;
+#if IMGUI_SUPPORT && USE_GLFW_WINDOW
 import <array>;
 import <memory>;
 import <optional>;
 import Lateralus.Core;
-import Lateralus.Platform.Imgui.iImpl;
+import Lateralus.Platform.ImGui.Impl;
 import Lateralus.Platform.Error;
 import Lateralus.Platform.Input;
 import Lateralus.Platform.Font.NotoEmojiRegular;
 import Lateralus.Platform.Font.NotoSansRegular;
 
 using namespace std;
+using namespace Lateralus::Core;
 using namespace Lateralus::Platform::Input;
 using namespace Lateralus::Platform::Font;
 
-namespace Lateralus::Platform::Imgui
+namespace Lateralus::Platform::ImGui
 {
 export class ImplGLFW : public iImpl
 {
@@ -114,7 +115,7 @@ public:
 
     void NewFrame()
     {
-        ImGuiIO &io = ImGui::GetIO();
+        ImGuiIO &io = ::ImGui::GetIO();
         IM_ASSERT(io.Fonts->IsBuilt() &&
                   "Font atlas not built! It is generally built by the renderer back-end. Missing "
                   "call to renderer _NewFrame() function? e.g. ImGui_ImplOpenGL3_NewFrame().");
@@ -144,7 +145,7 @@ public:
 
     void LoadFonts()
     {
-        ImGuiIO &io = ImGui::GetIO();
+        ImGuiIO &io = ::ImGui::GetIO();
 
         {
             static ImFontConfig cfg;
@@ -184,12 +185,12 @@ private:
         m_Time = 0.0;
 
         // Setup back-end capabilities flags
-        ImGuiIO &io = ImGui::GetIO();
+        ImGuiIO &io = ::ImGui::GetIO();
         io.BackendFlags |=
             ImGuiBackendFlags_HasMouseCursors; // We can honor GetMouseCursor() values (optional)
         io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos; // We can honor io.WantSetMousePos
                                                              // requests (optional, rarely used)
-        io.BackendPlatformName = "Lateralus::Platform::Imgui::GLFWImpl";
+        io.BackendPlatformName = "Lateralus::Platform::ImGui::GLFWImpl";
 
         // Keyboard mapping. ImGui will use those indices to peek into the io.KeysDown[] array.
         io.KeyMap[ImGuiKey_Tab] = GLFW_KEY_TAB;
@@ -246,13 +247,13 @@ private:
                 copy(input.begin(), input.end(), // from
                      buff.begin()                // to
                 );
-                ImGuiIO &io = ImGui::GetIO();
+                ImGuiIO &io = ::ImGui::GetIO();
                 io.AddInputCharactersUTF8(reinterpret_cast<char const *>(buff.data()));
             };
 
             m_KeyActionCallbackToken = m_Input->GetKeyActionCallback() +=
                 [this](KeyCode code, KeyAction action, KeyModifier modifier) {
-                    ImGuiIO &io = ImGui::GetIO();
+                    ImGuiIO &io = ::ImGui::GetIO();
                     if (action == KeyAction::Press)
                     {
                         io.KeysDown[(int)code] = true;
@@ -283,7 +284,7 @@ private:
 
             m_ScrollWheelCallbackToken = m_Input->GetScrollWheelCallback() +=
                 [](double x, double y) {
-                    ImGuiIO &io = ImGui::GetIO();
+                    ImGuiIO &io = ::ImGui::GetIO();
                     io.MouseWheelH += static_cast<float>(x);
                     io.MouseWheel += static_cast<float>(y);
                 };
@@ -297,7 +298,7 @@ private:
     void UpdateMousePosAndButtons()
     {
         // Update buttons
-        ImGuiIO &io = ImGui::GetIO();
+        ImGuiIO &io = ::ImGui::GetIO();
         for (usz i = 0; i < m_MouseJustPressed.size(); i++)
         {
             // If a mouse press event came, always pass it as "mouse held this frame", so we don't
@@ -327,14 +328,14 @@ private:
 
     void UpdateMouseCursor()
     {
-        ImGuiIO &io = ImGui::GetIO();
+        ImGuiIO &io = ::ImGui::GetIO();
         if ((io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange) ||
             glfwGetInputMode(m_Window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
         {
             return;
         }
 
-        ImGuiMouseCursor imgui_cursor = ImGui::GetMouseCursor();
+        ImGuiMouseCursor imgui_cursor = ::ImGui::GetMouseCursor();
         if (imgui_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor)
         {
             // Hide OS mouse cursor if imgui is drawing it or if it wants no cursor
@@ -354,7 +355,7 @@ private:
 
     void UpdateGamepads()
     {
-        ImGuiIO &io = ImGui::GetIO();
+        ImGuiIO &io = ::ImGui::GetIO();
         memset(io.NavInputs, 0, sizeof(io.NavInputs));
         if ((io.ConfigFlags & ImGuiConfigFlags_NavEnableGamepad) == 0)
         {
@@ -429,5 +430,5 @@ private:
 
     shared_ptr<Input::iInputProvider> m_Input;
 };
-} // namespace Lateralus::Platform::Imgui
+} // namespace Lateralus::Platform::ImGui
 #endif

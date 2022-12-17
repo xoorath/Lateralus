@@ -2,7 +2,7 @@
 
 import Lateralus.Core;
 import Lateralus.Platform;
-import Lateralus.Platform.iWindow;
+import Lateralus.Platform.Window;
 import <array>;
 
 namespace Lateralus::Platform::Platform::Tests
