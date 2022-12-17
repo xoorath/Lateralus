@@ -101,7 +101,7 @@ export constexpr char const* SSEGetName(SSEVersion version = SSEVersion::Compile
     }
 }
 
-constexpr char const* SSEVersionName = SSEGetName();
+export constexpr char const* SSEVersionName = SSEGetName();
 
 }
 
@@ -138,7 +138,7 @@ constexpr char const* SSEVersionName = SSEGetName();
 
 namespace Lateralus::Core 
 {
-enum class NeonVersion : uint8
+export enum class NeonVersion : uint8
 {
     None    = LATERALUS_NEON_NONE,
     Neon7        = LATERALUS_NEON7,
@@ -146,7 +146,7 @@ enum class NeonVersion : uint8
     CompilerCurrent = LATERALUS_NEON_CURRENT
 };
 
-constexpr char const* NEONGetName(NeonVersion version = NeonVersion::CompilerCurrent)
+export constexpr char const* NEONGetName(NeonVersion version = NeonVersion::CompilerCurrent)
 {
     switch (version)
     {
@@ -156,5 +156,5 @@ constexpr char const* NEONGetName(NeonVersion version = NeonVersion::CompilerCur
     }
 }
 
-constexpr char const* NEONVersionName = NEONGetName();
+export constexpr char const* NEONVersionName = NEONGetName();
 }

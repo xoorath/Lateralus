@@ -23,119 +23,229 @@ export struct CPUID
     CPUID()
     {
 #if defined(_MSC_VER)
-        int regs[4] = {0};
-
-        // Execute CPUID with function ID 0 to get the maximum input value
-        __cpuid(regs, 0);
-        fn0.MaxInputValue = regs[0];
-
-        memcpy(fn0.ManufacturerID.data(), &regs[1], fn0.ManufacturerID.size()-1);
-        fn0.ManufacturerID[12] = '\0';
-
-        // Execute CPUID with function ID 1 to get the feature flags
-        __cpuid(regs, 1);
-        fn1.ebx = bitset<32>(regs[1]);
-        fn1.ecx = bitset<32>(regs[2]);
-        fn1.edx = bitset<32>(regs[3]);
-
-        // Execute CPUID with function ID 7 to get the extended feature flags
-        __cpuid(regs, 7);
-        fn7.ebx = bitset<32>(regs[1]);
-        fn7.ecx = bitset<32>(regs[2]);
-        fn7.edx = bitset<32>(regs[3]);
+        int32 regs[4] = {0};
+        int32 &eax = regs[0];
+        int32 &ebx = regs[1];
+        int32 &ecx = regs[2];
+        int32 &edx = regs[3];
+        auto cpuid = [&regs](int num) { __cpuid(regs, num); };
 #elif defined(__GNUC__) || defined(__clang__)
         uint32 eax, ebx, ecx, edx;
-        // Execute CPUID with function ID 0 to get the maximum input value
-        __get_cpuid(0, &eax, &ebx, &ecx, &edx);
-        fn0.MaxInputValue = eax;
-        memcpy(fn0.ManufacturerID.data(), &ebx, 4);
-        memcpy(fn0.ManufacturerID.data()+4, &ecx, 4);
-        memcpy(fn0.ManufacturerID.data()+8, &edx, 4);
-
-        // Execute CPUID with function ID 1 to get the feature flags
-        __get_cpuid(1, &eax, &ebx, &ecx, &edx);
-        fn1.ebx = bitset<32>(ebx);
-        fn1.ecx = bitset<32>(ecx);
-        fn1.edx = bitset<32>(edx);
-        // Execute CPUID with function ID 7 to get the extended feature flags
-        __get_cpuid(7, &eax, &ebx, &ecx, &edx);
-        fn7.ebx = bitset<32>(ebx);
-        fn7.ecx = bitset<32>(ecx);
-        fn1.edx = bitset<32>(edx);
+        auto cpuid = [&eax, &ebx, &ecx, &edx](int num) {
+            __get_cpuid(num, &eax, &ebx, &ecx, &edx);
+        };
 #else
 #   error "Unsupported compiler"
 #endif
+        cpuid(0);
+        // highest function
+        fn00.eax = eax;
+        // ManufacturerID (not byte order: ebx, edx, ecx)
+        fn00.ebx = ebx;
+        fn00.edx = edx;
+        fn00.ecx = ecx;
+
+        if (fn00.HighestFunction >= 0x01)
+        {
+            cpuid(0x01);
+            fn01.ebx = bitset<32>(ebx);
+            fn01.ecx = bitset<32>(ecx);
+            fn01.edx = bitset<32>(edx);
+        }
+
+        if (fn00.HighestFunction >= 0x07)
+        {
+            cpuid(0x07);
+            fn07.ebx = bitset<32>(ebx);
+            fn07.ecx = bitset<32>(ecx);
+            fn07.edx = bitset<32>(edx);
+        }
+
+        cpuid(0x80000000);
+        // Higest extended function
+        fn80000000.eax = eax;
+
+        if (fn80000000.HighestExtendedFunction >= 0x80000004)
+        {
+            ProcessorBrand.fill('\0');
+            cpuid(0x80000002);
+            fn80000002.eax = eax;
+            fn80000002.ebx = ebx;
+            fn80000002.ecx = ecx;
+            fn80000002.edx = edx;
+            cpuid(0x80000003);
+            fn80000003.eax = eax;
+            fn80000003.ebx = ebx;
+            fn80000003.ecx = ecx;
+            fn80000003.edx = edx;
+            cpuid(0x80000004);
+            fn80000004.eax = eax;
+            fn80000004.ebx = ebx;
+            fn80000004.ecx = ecx;
+            fn80000004.edx = edx;
+        }
     }
 
-
-    bool HasPopcnt() const { return fn1.ecx[23]; }
-
-    // Always false on physical CPUs. 
-    // This should only be used for telemetry. The value is easily spoofed if your intent is to
-    // deny the game running in a virtual machine.
-    bool IsHypervisor() const {return fn1.ecx[31];}
+    bool HasPopcnt() const { return fn01.ecx[23]; }
 
     SSEVersion GetSSEVersion() const
     {
-        if (fn7.ebx[16] && fn7.ebx[17] && fn7.ebx[21] && fn7.ebx[26] && fn7.ebx[27] &&
-            fn7.ebx[28] && fn7.ebx[30] && fn7.ebx[31] && fn7.ecx[11] && fn7.ecx[12] &&
-            fn7.ecx[14] && fn7.edx[2] && fn7.edx[3] && fn7.edx[8] && fn7.edx[23])
+        // Currently we check for the full suite of AVX512 features, which is a pretty bad way to do
+        // this. We should change these to || instead and have another enumeration for AVX512
+        // features
+        if (fn07.ebx[16] && fn07.ebx[17] && fn07.ebx[21] && fn07.ebx[26] && fn07.ebx[27] &&
+            fn07.ebx[28] && fn07.ebx[30] && fn07.ebx[31] && fn07.ecx[11] && fn07.ecx[12] &&
+            fn07.ecx[14] && fn07.edx[2] && fn07.edx[3] && fn07.edx[8] && fn07.edx[23])
         {
             return SSEVersion::AVX512;
         }
 
-        if (fn7.ebx[5]) {
+        if (fn07.ebx[5])
+        {
             return SSEVersion::AVX2;
         }
 
-        if (fn1.ecx[28]) {
+        if (fn01.ecx[28])
+        {
             return SSEVersion::AVX;
         }
-        if (fn1.ecx[20]) {
+        if (fn01.ecx[20])
+        {
             return SSEVersion::SSE4_2;
         }
-        if (fn1.ecx[19])
+        if (fn01.ecx[19])
         {
             return SSEVersion::SSE4_1;
         }
-        if (fn1.ecx[9])
+        if (fn01.ecx[9])
         {
             return SSEVersion::SSSE3;
         }
-        if (fn1.ecx[0])
+        if (fn01.ecx[0])
         {
             return SSEVersion::SSE3;
         }
 
-        if (fn1.edx[26])
+        if (fn01.edx[26])
         {
             return SSEVersion::SSE2;
         }
-        if (fn1.edx[25])
+        if (fn01.edx[25])
         {
             return SSEVersion::SSE2;
         }
 
         return SSEVersion::None;
-
     }
 
+    //////////////////////////////////////////////////////////////////////////
+    // Function 0
+    // https://en.wikipedia.org/wiki/CPUID#EAX=0:_Highest_Function_Parameter_and_Manufacturer_ID
 
     struct
     {
-        uint32 MaxInputValue = 0;
-        array<char, 13> ManufacturerID;
-    } fn0;
+        /// <summary>
+        /// This value corresponds with the standard functions supported on the CPU.
+        /// For example if this value is less than 7, then the values in the fn07 struct will not be
+        /// populated.
+        /// See also: fn80000000.HighestExtendedFunction
+        /// </summary>
+        union 
+        {
+            int32 HighestFunction = 0;
+            int32 eax;
+        };
+        /// <summary>
+        /// A non-null terminated manufacturer id string.
+        /// Use GetManufacturerID for a string_view
+        /// </summary>
+        union
+        {
+            array<char, 12> ManufacturerID;
+            struct
+            {
+                // Note: order is ebx, edx, ecx so ManufacturerID can represent a string of characters
+                int32 ebx, edx, ecx;
+            };
+        };
+    } fn00;
+
+    string_view GetManufacturerID() const
+    {
+        return string_view(fn00.ManufacturerID.data(), fn00.ManufacturerID.size());
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+    // Function 1 - Processor Info and Feature Bits
+    // https://en.wikipedia.org/wiki/CPUID#EAX=1:_Processor_Info_and_Feature_Bits
 
     struct
     {
         bitset<32> ebx, ecx, edx;
-    } fn1;
+    } fn01;
+
+    //////////////////////////////////////////////////////////////////////////
+    // Function 7 - Extended Features
+    // https://en.wikipedia.org/wiki/CPUID#EAX=7,_ECX=0:_Extended_Features
 
     struct
     {
         bitset<32> ebx, ecx, edx;
-    } fn7;
+    } fn07;
+
+    //////////////////////////////////////////////////////////////////////////
+    // Function 80000000 - Highest extended function implemented
+    // https://en.wikipedia.org/wiki/CPUID#EAX=80000000h:_Get_Highest_Extended_Function_Implemented
+
+    struct
+    {
+        /// <summary>
+        /// Similar to fn00.HighestFunction this value corresponds with the highest extended function
+        /// supported. For example if this value is less than 0x80000004 then
+        /// fn80000002.ProcessorBrand will not be populated (as it spans fn80000002-fn80000004)
+        /// See also: fn00.HighestFunction
+        /// </summary>
+        union
+        {
+            uint32 HighestExtendedFunction = 0;
+            bitset<32> eax;
+        };
+
+        // unused
+        //int32 ebx, ecx, edx;
+    } fn80000000;
+
+    //////////////////////////////////////////////////////////////////////////
+    // Function 80000002,80000003,80000003 - Processor brand string
+    // https://en.wikipedia.org/wiki/CPUID#EAX=80000002h,80000003h,80000004h:_Processor_Brand_String
+
+    union
+    {
+        /// <summary>
+        /// A null terminated string describing the processor.
+        /// Example: "Intel(R) Core(TM) i5-1035G7 CPU @ 1.20GHz\0\0\0\0\0\0\0"
+        /// </summary>
+        array<char, 48> ProcessorBrand;
+        struct {
+            struct
+            {
+                int32 eax, ebx, ecx, edx;
+            } fn80000002;
+            struct
+            {
+                int32 eax, ebx, ecx, edx;
+            } fn80000003;
+            struct
+            {
+                int32 eax, ebx, ecx, edx;
+            } fn80000004;
+        };
+    };
+    string_view GetProcessorBrandString() const 
+    {
+        size_t len = strlen(ProcessorBrand.data());
+        return string_view(ProcessorBrand.data(), len);
+    }
 };
 
-}
+} // namespace Lateralus::Core

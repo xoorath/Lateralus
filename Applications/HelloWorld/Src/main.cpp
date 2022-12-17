@@ -23,6 +23,9 @@ import Lateralus.Core.Signal;
 import Lateralus.Core.ByteConversion;
 import Lateralus.Core.UtfConversion;
 import Lateralus.Platform;
+#if IMGUI_SUPPORT
+import Lateralus.Platform.ImGuiWidget.Core;
+#endif
 import Lateralus.Platform.Platform;
 import Lateralus.Platform.Window;
 
@@ -198,6 +201,8 @@ int main(int, char **)
         // multiply triangle's color with this color
         triangle_shader.setUniform("color", color[0], color[1], color[2]);
         ImGui::End();
+
+        Lateralus::Platform::ImGuiWidget::Core();
 
         ImGui::Begin("Conan logo");
         // render_conan_logo();
