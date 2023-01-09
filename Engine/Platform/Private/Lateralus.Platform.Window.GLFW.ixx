@@ -1,30 +1,30 @@
 module;
 
-#if IMGUI_SUPPORT
+#if ENABLE_IMGUI
 #include <imgui.h>
 #endif
 
 #include <Core.h>
 //#include <Core.Log.h>
 
-#if USE_GLFW_WINDOW
+#if ENABLE_GLFW
 #include <GL/glew.h>
 #include <GLFW/glfw3.h> // Include glfw3.h after our OpenGL definitions
 #endif
 
 export module Lateralus.Platform.Window.GLFW;
 
-#if USE_GLFW_WINDOW
+#if ENABLE_GLFW
 
 import Lateralus.Platform.Error;
-#if IMGUI_SUPPORT
+import Lateralus.Platform.HMI;
+import Lateralus.Platform.HMI.GLFW;
+#if ENABLE_IMGUI
 import Lateralus.Platform.ImGui.Impl;
 import Lateralus.Platform.ImGui.GLFW;
 import Lateralus.Platform.ImGui.OpenGL;
 import Lateralus.Platform.ImGui.Theme;
 #endif
-import Lateralus.Platform.Input;
-import Lateralus.Platform.Input.GLFW;
 import Lateralus.Platform.Platform;
 import Lateralus.Platform.Window;
 import Lateralus.Core;
@@ -40,11 +40,11 @@ using namespace std;
 using namespace std::string_view_literals;
 
 using namespace Lateralus::Core;
-#if IMGUI_SUPPORT
+#if ENABLE_IMGUI
 using namespace Lateralus::Platform::ImGui;
 #endif
-using namespace Lateralus::Platform::Input;
-using namespace Lateralus::Platform::Input::GLFW;
+using namespace Lateralus::Platform::HMI;
+using namespace Lateralus::Platform::HMI::GLFW;
 
 namespace Lateralus::Platform::GLFW
 {
@@ -109,7 +109,7 @@ public:
             m_Input = move(inputProvider);
         }
 
-#if IMGUI_SUPPORT
+#if ENABLE_IMGUI
         // do/while to break after logging an error.
         // We log an error here instead of returning an error because imgui failing is recoverable.
         do
@@ -177,7 +177,7 @@ public:
     // iWindow
     void NewFrame() override
     {
-#if IMGUI_SUPPORT
+#if ENABLE_IMGUI
         // feed inputs to dear imgui, start new frame
         for (auto const &impl : m_Impls)
         {
@@ -190,7 +190,7 @@ public:
     // iWindow
     void Render() override
     {
-#if IMGUI_SUPPORT
+#if ENABLE_IMGUI
         ::ImGui::EndFrame();
         ::ImGui::Render();
         for (auto const &impl : m_Impls)
@@ -219,7 +219,7 @@ private:
         }
         glfwMakeContextCurrent(m_Window);
 
-#if IMGUI_SUPPORT
+#if ENABLE_IMGUI
         if (m_ImGuiContext != nullptr)
         {
             ::ImGui::SetCurrentContext(m_ImGuiContext);
@@ -256,7 +256,7 @@ private:
             m_Window = nullptr;
         }
 
-#if IMGUI_SUPPORT
+#if ENABLE_IMGUI
         for (auto &impl : m_Impls)
         {
             impl->Shutdown();
@@ -283,9 +283,9 @@ private:
     }
 
     GLFWwindow *m_Window = nullptr;
-    shared_ptr<Input::iInputProvider> m_Input;
+    shared_ptr<iInputProvider> m_Input;
 
-#if IMGUI_SUPPORT
+#if ENABLE_IMGUI
     ImGuiContext *m_ImGuiContext = nullptr;
     vector<shared_ptr<iImpl>> m_Impls;
 #endif

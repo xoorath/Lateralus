@@ -15,6 +15,7 @@ export using uint8 = uint8_t;
 export using uint16 = uint16_t;
 export using uint32 = uint32_t;
 export using uint64 = uint64_t;
+export using byte = uint8;
 
 export using float32 = float;
 export using float64 = double;

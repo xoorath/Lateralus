@@ -86,8 +86,8 @@ namespace Lateralus
                     || target.Platform.HasFlag(Platform.linux);
 
                 conf.Defines.Add(new[] {
-                    $@"USE_GLFW_WINDOW={btoi(isDesktop)}",
-                    $@"IMGUI_SUPPORT={btoi(hasImgui)}"
+                    $@"ENABLE_GLFW={btoi(isDesktop)}",
+                    $@"ENABLE_IMGUI={btoi(hasImgui)}"
                 });
 
                 if (hasImgui)

@@ -1,11 +1,13 @@
 module;
+#if PLATFORM_IS_AMD64 || PLATFORM_IS_X86
 #if defined(_MSC_VER)
 #include <intrin.h>
 #elif defined(__GNUC__) || defined(__clang__)
 #include <cpuid.h>
 #endif
+#endif
 export module Lateralus.Core.CPUID;
-
+#if PLATFORM_IS_AMD64 || PLATFORM_IS_X86
 import <array>;
 import <bitset>;
 import <string>;
@@ -35,7 +37,7 @@ export struct CPUID
             __get_cpuid(num, &eax, &ebx, &ecx, &edx);
         };
 #else
-#   error "Unsupported compiler"
+#error "Unsupported compiler"
 #endif
         cpuid(0);
         // highest function
@@ -150,8 +152,7 @@ export struct CPUID
         /// populated.
         /// See also: fn80000000.HighestExtendedFunction
         /// </summary>
-        union 
-        {
+        union {
             int32 HighestFunction = 0;
             int32 eax;
         };
@@ -159,12 +160,12 @@ export struct CPUID
         /// A non-null terminated manufacturer id string.
         /// Use GetManufacturerID for a string_view
         /// </summary>
-        union
-        {
+        union {
             array<char, 12> ManufacturerID;
             struct
             {
-                // Note: order is ebx, edx, ecx so ManufacturerID can represent a string of characters
+                // Note: order is ebx, edx, ecx so ManufacturerID can represent a string of
+                // characters
                 int32 ebx, edx, ecx;
             };
         };
@@ -200,33 +201,32 @@ export struct CPUID
     struct
     {
         /// <summary>
-        /// Similar to fn00.HighestFunction this value corresponds with the highest extended function
-        /// supported. For example if this value is less than 0x80000004 then
+        /// Similar to fn00.HighestFunction this value corresponds with the highest extended
+        /// function supported. For example if this value is less than 0x80000004 then
         /// fn80000002.ProcessorBrand will not be populated (as it spans fn80000002-fn80000004)
         /// See also: fn00.HighestFunction
         /// </summary>
-        union
-        {
+        union {
             uint32 HighestExtendedFunction = 0;
             bitset<32> eax;
         };
 
         // unused
-        //int32 ebx, ecx, edx;
+        // int32 ebx, ecx, edx;
     } fn80000000;
 
     //////////////////////////////////////////////////////////////////////////
     // Function 80000002,80000003,80000003 - Processor brand string
     // https://en.wikipedia.org/wiki/CPUID#EAX=80000002h,80000003h,80000004h:_Processor_Brand_String
 
-    union
-    {
+    union {
         /// <summary>
         /// A null terminated string describing the processor.
         /// Example: "Intel(R) Core(TM) i5-1035G7 CPU @ 1.20GHz\0\0\0\0\0\0\0"
         /// </summary>
         array<char, 48> ProcessorBrand;
-        struct {
+        struct
+        {
             struct
             {
                 int32 eax, ebx, ecx, edx;
@@ -241,7 +241,7 @@ export struct CPUID
             } fn80000004;
         };
     };
-    string_view GetProcessorBrandString() const 
+    string_view GetProcessorBrandString() const
     {
         size_t len = strlen(ProcessorBrand.data());
         return string_view(ProcessorBrand.data(), len);
@@ -249,3 +249,4 @@ export struct CPUID
 };
 
 } // namespace Lateralus::Core
+#endif

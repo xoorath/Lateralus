@@ -67,19 +67,36 @@ namespace Lateralus
             });
 
             {
-                bool isDesktop = 
+                bool isX86 = target.Platform.HasFlag(Platform.win32);
+                bool isAMD64 = 
                     target.Platform.HasFlag(Platform.win64) 
-                    || target.Platform.HasFlag(Platform.win32) 
                     || target.Platform.HasFlag(Platform.mac)
                     || target.Platform.HasFlag(Platform.linux);
 
+                bool isDesktop = isX86 || isAMD64;
+
                 conf.Defines.Add(new[] {
+                    // Config Specific
                     $@"CONF_DEBUG={btoi(target.Optimization.HasFlag(Optimization.Debug))}",
                     $@"CONF_RELEASE={btoi(target.Optimization.HasFlag(Optimization.Release))}",
                     $@"CONF_RETAIL={btoi(target.Optimization.HasFlag(Optimization.Retail))}",
 
-                    $@"PLATFORM_DESKTOP={btoi(isDesktop)}",
-                    $@"PLATFORM_WIN64={btoi(target.Platform.HasFlag(Platform.win64))}"
+                    // Config Optimization
+                    $@"CONF_IS_OPTIMIZED={btoi(target.Optimization.HasAnyFlag(Optimization.Release|Optimization.Retail))}",
+                    
+                    //Platform specific
+                    $@"PLATFORM_WIN32={btoi(target.Platform.HasFlag(Platform.win32))}",
+                    $@"PLATFORM_WIN64={btoi(target.Platform.HasFlag(Platform.win64))}",
+                    $@"PLATFORM_LINUX={btoi(target.Platform.HasFlag(Platform.linux))}",
+                    $@"PLATFORM_MAC={btoi(target.Platform.HasFlag(Platform.mac))}",          
+
+                    // Platform category
+                    $@"PLATFORM_IS_DESKTOP={btoi(isDesktop)}",
+                    $@"PLATFORM_IS_WINDOWS={btoi(target.Platform.HasAnyFlag(Platform.win32|Platform.win64))}",
+                    
+                    // Platform architecture
+                    $@"PLATFORM_IS_X86={btoi(isX86)}",
+                    $@"PLATFORM_IS_AMD64={btoi(isAMD64)}",
                 });
 
             }

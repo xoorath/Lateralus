@@ -1,5 +1,5 @@
 module;
-#if IMGUI_SUPPORT && USE_GLFW_WINDOW
+#if ENABLE_IMGUI && ENABLE_GLFW
 // License from: https://github.com/ocornut/imgui/blob/master/LICENSE.txt
 // Source code from: https://github.com/ocornut/imgui/blob/master/backends/imgui_impl_glfw.cpp
 /*
@@ -52,20 +52,20 @@ SOFTWARE.
 #include "imgui.h"
 #endif
 export module Lateralus.Platform.ImGui.GLFW;
-#if IMGUI_SUPPORT && USE_GLFW_WINDOW
+#if ENABLE_IMGUI && ENABLE_GLFW
 import <array>;
 import <memory>;
 import <optional>;
 import Lateralus.Core;
+import Lateralus.Platform.HMI;
 import Lateralus.Platform.ImGui.Impl;
 import Lateralus.Platform.Error;
-import Lateralus.Platform.Input;
 import Lateralus.Platform.Font.NotoEmojiRegular;
 import Lateralus.Platform.Font.NotoSansRegular;
 
 using namespace std;
 using namespace Lateralus::Core;
-using namespace Lateralus::Platform::Input;
+using namespace Lateralus::Platform::HMI;
 using namespace Lateralus::Platform::Font;
 
 namespace Lateralus::Platform::ImGui
@@ -77,7 +77,7 @@ public:
 
     virtual ~ImplGLFW() { Shutdown(); }
 
-    optional<Error> Init(GLFWwindow *window, shared_ptr<Input::iInputProvider> input)
+    optional<Error> Init(GLFWwindow *window, shared_ptr<iInputProvider> input)
     {
         if (m_Window != nullptr || m_Input != nullptr)
         {
@@ -428,7 +428,7 @@ private:
     MouseButtonCallback::Token m_MouseButtonCallbackToken;
     ScrollWheelCallback::Token m_ScrollWheelCallbackToken;
 
-    shared_ptr<Input::iInputProvider> m_Input;
+    shared_ptr<iInputProvider> m_Input;
 };
 } // namespace Lateralus::Platform::ImGui
 #endif

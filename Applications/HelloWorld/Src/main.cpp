@@ -1,4 +1,4 @@
-#if IMGUI_SUPPORT
+#if ENABLE_IMGUI
 #include "imgui.h"
 #endif
 #include "opengl_shader.h"
@@ -23,7 +23,7 @@ import Lateralus.Core.Signal;
 import Lateralus.Core.ByteConversion;
 import Lateralus.Core.UtfConversion;
 import Lateralus.Platform;
-#if IMGUI_SUPPORT
+#if ENABLE_IMGUI
 import Lateralus.Platform.ImGuiWidget.Core;
 #endif
 import Lateralus.Platform.Platform;
@@ -41,6 +41,7 @@ std::string ReadFileToMemory(const std::string &filename)
     try
     {
         file.open(filename.c_str());
+
         file_stream << file.rdbuf();
         file.close();
     }
@@ -53,7 +54,7 @@ std::string ReadFileToMemory(const std::string &filename)
 
 void render_conan_logo()
 {
-#if IMGUI_SUPPORT
+#if ENABLE_IMGUI
     ImDrawList *draw_list = ImGui::GetWindowDrawList();
     float sz = 300.0f;
     static ImVec4 col1 = ImVec4(68.0 / 255.0, 83.0 / 255.0, 89.0 / 255.0, 1.0f);
@@ -186,7 +187,7 @@ int main(int, char **)
         glBindVertexArray(0);
 
         // render your GUI
-#if IMGUI_SUPPORT
+#if ENABLE_IMGUI
         ImGui::Begin("Triangle Position/Color");
         static float rotation = 0.0;
         ImGui::SliderFloat("rotation", &rotation, 0, 2 * PI);

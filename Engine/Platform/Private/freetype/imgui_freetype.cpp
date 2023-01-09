@@ -40,7 +40,7 @@
 
 // FIXME: cfg.OversampleH, OversampleV are not supported (but perhaps not so necessary with this
 // rasterizer).
-#if IMGUI_SUPPORT
+#if ENABLE_IMGUI
 #include "imgui_freetype.h"
 #include "imgui_internal.h" // ImMin,ImMax,ImFontAtlasBuild*,
 #include <ft2build.h>

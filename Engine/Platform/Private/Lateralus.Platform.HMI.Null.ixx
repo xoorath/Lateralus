@@ -1,12 +1,12 @@
-export module Lateralus.Platform.Input.Null;
+export module Lateralus.Platform.HMI.Null;
 
 import Lateralus.Platform.Error;
-import Lateralus.Platform.Input;
+import Lateralus.Platform.HMI;
 import <optional>;
 
 using namespace std;
 
-namespace Lateralus::Platform::Input::Null
+namespace Lateralus::Platform::HMI::Null
 {
 export class InputProvider : public iInputProvider
 {

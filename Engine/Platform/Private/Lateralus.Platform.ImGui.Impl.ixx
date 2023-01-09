@@ -1,4 +1,4 @@
-#if IMGUI_SUPPORT
+#if ENABLE_IMGUI
 export module Lateralus.Platform.ImGui.Impl;
 
 import Lateralus.Platform.Error;

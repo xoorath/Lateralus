@@ -11,7 +11,7 @@ import Lateralus.Platform.Platform.Null;
 #endif
 
 import Lateralus.Platform.Window;
-#if USE_GLFW_WINDOW
+#if ENABLE_GLFW
 import Lateralus.Platform.Window.GLFW;
 #else
 import Lateralus.Platform.Window.Null;
@@ -32,7 +32,7 @@ export shared_ptr<iPlatform> CreatePlatform()
 
 export shared_ptr<iWindow> CreateWindow()
 {
-#if USE_GLFW_WINDOW
+#if ENABLE_GLFW
     return make_shared<GLFW::Window>();
 #else
     return make_shared<Null::Window>();

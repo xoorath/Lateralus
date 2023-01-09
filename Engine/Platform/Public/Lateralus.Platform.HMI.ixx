@@ -2,7 +2,7 @@ module;
 
 #include <Core.h>
 
-export module Lateralus.Platform.Input;
+export module Lateralus.Platform.HMI;
 
 import <array>;
 import <functional>;
@@ -21,8 +21,7 @@ namespace Lateralus::Platform
 class iWindow;
 }
 
-// Input values are designed to map exactly to GLFW input values for an easy first implementation.
-namespace Lateralus::Platform::Input
+namespace Lateralus::Platform::HMI
 {
 export enum class KeyModifier {
     Shift = 0b00000001,

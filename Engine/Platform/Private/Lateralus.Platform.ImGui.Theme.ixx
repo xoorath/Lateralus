@@ -1,9 +1,9 @@
 module;
-#if IMGUI_SUPPORT
+#if ENABLE_IMGUI
 #include "imgui.h"
 #endif
 export module Lateralus.Platform.ImGui.Theme;
-#if IMGUI_SUPPORT
+#if ENABLE_IMGUI
 using namespace std;
 import Lateralus.Core;
 

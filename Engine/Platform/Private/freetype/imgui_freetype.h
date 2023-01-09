@@ -2,7 +2,7 @@
 // (headers)
 
 #pragma once
-#if IMGUI_SUPPORT
+#if ENABLE_IMGUI
 #include "imgui.h" // IMGUI_API
 
 // Forward declarations

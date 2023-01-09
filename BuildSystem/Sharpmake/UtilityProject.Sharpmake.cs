@@ -30,7 +30,7 @@ namespace Lateralus
             conf.Output = Configuration.OutputType.Exe;
 
             // Decorative configuration
-            conf.SolutionFolder = "Utilities";
+            conf.SolutionFolder = "Applications/Utilities";
 
             conf.EventPostBuild.AddRange(new[] {
                 $@"if not exist ""$(OutDir)Assets"" mklink /j ""$(OutDir)Assets"" ""{Util.PathMakeStandard(GetCurrentCallingFileInfo().DirectoryName)}/Assets"""

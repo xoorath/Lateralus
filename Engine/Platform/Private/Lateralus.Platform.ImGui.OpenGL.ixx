@@ -1,5 +1,5 @@
 module;
-#if IMGUI_SUPPORT
+#if ENABLE_IMGUI
 // License from: https://github.com/ocornut/imgui/blob/master/LICENSE.txt
 // Source code from: https://github.com/ocornut/imgui/blob/master/backends/imgui_impl_opengl3.cpp
 /*
@@ -64,7 +64,7 @@ SOFTWARE.
 
 export module Lateralus.Platform.ImGui.OpenGL;
 
-#if IMGUI_SUPPORT
+#if ENABLE_IMGUI
 
 import Lateralus.Platform.ImGui.Impl;
 import Lateralus.Platform.Error;

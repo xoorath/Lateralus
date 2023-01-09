@@ -2,21 +2,22 @@ module;
 
 #include <GLFW/glfw3.h>
 
-export module Lateralus.Platform.Input.GLFW;
+export module Lateralus.Platform.HMI.GLFW;
 
-#if USE_GLFW_WINDOW
+#if ENABLE_GLFW
 
 import Lateralus.Core;
 import Lateralus.Core.UtfConversion;
 import Lateralus.Platform.Error;
-import Lateralus.Platform.Input;
+import Lateralus.Platform.HMI;
 import <array>;
 import <optional>;
 
 using namespace std;
 using namespace Lateralus::Core;
+using namespace Lateralus::Core::UtfConversion;
 
-namespace Lateralus::Platform::Input::GLFW
+namespace Lateralus::Platform::HMI::GLFW
 {
 export class InputProvider : public iInputProvider
 {
@@ -73,12 +74,17 @@ private:
         });
 
         glfwSetCharCallback(m_Window, [](GLFWwindow *window, unsigned int codepoint) {
-            usz size;
-            auto utfCharacter = UTF32_to_UTF8(codepoint, size);
-            u8string_view utfStrView(utfCharacter.data(), size);
+            char8_t utf8Str[5] = { u8'\0' };
+            
+            Core::byte const* sourceBytes = reinterpret_cast<Core::byte const*>(&codepoint);
+            usz const sourceSize = sizeof(codepoint);
+            Core::byte* destBytes = reinterpret_cast<Core::byte*>(utf8Str);
+            usz const destSize = CountReEncodedSize<Encoding::UTF32, Encoding::UTF8>(sourceBytes, sourceSize);
+
+            ReEncode<Encoding::UTF32, Encoding::UTF8>(sourceBytes, destBytes, sourceSize);
 
             auto self = reinterpret_cast<InputProvider const *>(glfwGetWindowUserPointer(window));
-            self->m_TextCallback(utfStrView);
+            self->m_TextCallback(u8string_view(utf8Str, destSize));
         });
 
         glfwSetMouseButtonCallback(m_Window, [](GLFWwindow *window, int button, int action,
@@ -100,5 +106,5 @@ private:
 
     GLFWwindow *m_Window = nullptr;
 };
-} // namespace Lateralus::Platform::Input::GLFW
+} // namespace Lateralus::Platform::HMI::GLFW
 #endif

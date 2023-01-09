@@ -141,7 +141,7 @@ namespace Lateralus::Core
 export enum class NeonVersion : uint8
 {
     None    = LATERALUS_NEON_NONE,
-    Neon7        = LATERALUS_NEON7,
+    Neon7   = LATERALUS_NEON7,
 
     CompilerCurrent = LATERALUS_NEON_CURRENT
 };
