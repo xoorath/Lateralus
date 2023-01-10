@@ -107,21 +107,26 @@ void ReEncode<Encoding::UTF8, Encoding::ASCII>(byte const *sourceBytes, byte *de
     usz i = 0;
     while (i < sourceSize)
     {
-        char8_t const &c = sourceAs8[i];
-        if ((c & 0b10000000) == 0)
+        char8_t const c = sourceAs8[i];
+        if (c < 0x80)
         {
-            // c is a single-byte character
-            *destAsAscii++ = c <= 0b01111111 ? static_cast<char8_t>(c) : '?';
-            i++;
+            *destAsAscii++ = static_cast<char>(c);
+            i += 1;
+        }
+        else if (c < 0xE0)
+        {
+            *destAsAscii++ = '?';
+            i += 2;
+        }
+        else if (c < 0xF0)
+        {
+            *destAsAscii++ = '?';
+            i += 3;
         }
         else
         {
-            // c is the start of a multi-byte character
             *destAsAscii++ = '?';
-            while ((sourceAs8[i] & 0b10000000) != 0)
-            {
-                i++;
-            }
+            i += 4;
         }
     }
 }
@@ -129,15 +134,35 @@ export template <>
 usz CountReEncodedSize<Encoding::UTF8, Encoding::ASCII>(byte const *sourceBytes, usz sourceSize)
 {
     auto sourceAs8 = reinterpret_cast<char8_t const *>(sourceBytes);
-    usz encodedLength = 0;
+    usz encodedSize = 0;
     for (usz i = 0; i < sourceSize; ++i)
     {
-        if ((sourceAs8[i] & 0b10000000) == 0)
+        char8_t c = sourceAs8[i];
+        if (c < 0x80)
         {
-            encodedLength++;
+            // ASCII character, 1 byte in UTF-8, 1 byte in ASCII (direct conversion)
+            encodedSize += 1;
+        }
+        else if (c < 0xE0)
+        {
+            // 2-byte character, 2 bytes in UTF-8, 1 byte in ASCII ('?' character)
+            encodedSize += 1;
+            i++;
+        }
+        else if (c < 0xF0)
+        {
+            // 3-byte character, 3 bytes in UTF-8, 1 byte in ASCII ('?' character)
+            encodedSize += 1;
+            i += 2;
+        }
+        else
+        {
+            // 4-byte character, 4 bytes in UTF-8, 1 byte in ASCII ('?' character)
+            encodedSize += 1;
+            i += 3;
         }
     }
-    return encodedLength;
+    return encodedSize;
 }
 
 export template <>
@@ -154,33 +179,33 @@ void ReEncode<Encoding::UTF8, Encoding::UTF16>(byte const *sourceBytes, byte *de
         if ((c & 0b10000000) == 0)
         {
             // ASCII character
-            destAs16[i] = c;
+            *destAs16++ = c;
             ++i;
         }
         else if ((c & 0b11100000) == 0b11000000)
         {
             // 2-byte character
-            destAs16[i] = ((c & 0b00011111) << 6) | (sourceAs8[i + 1] & 0b00111111);
+            *destAs16++ = ((c & 0b00011111) << 6) | (sourceAs8[i + 1] & 0b00111111);
             i += 2;
         }
         else if ((c & 0b11110000) == 0b11100000)
         {
             // 3-byte character
-            destAs16[i] = ((c & 0b00001111) << 12) | ((sourceAs8[i + 1] & 0b00111111) << 6) |
+            *destAs16++ = ((c & 0b00001111) << 12) | ((sourceAs8[i + 1] & 0b00111111) << 6) |
                           (sourceAs8[i + 2] & 0b00111111);
             i += 3;
         }
         else if ((c & 0b11111000) == 0b11110000)
         {
             // 4-byte character
-            destAs16[i] = ((c & 0b00000111) << 18) | ((sourceAs8[i + 1] & 0b00111111) << 12) |
+            *destAs16++ = ((c & 0b00000111) << 18) | ((sourceAs8[i + 1] & 0b00111111) << 12) |
                           ((sourceAs8[i + 2] & 0b00111111) << 6) | (sourceAs8[i + 3] & 0b00111111);
             i += 4;
         }
         else
         {
             // Invalid UTF-8 character
-            destAs16[i] = 0xFFFD;
+            *destAs16++ = 0xFFFD;
             ++i;
         }
     }
@@ -745,13 +770,17 @@ usz CountReEncodedSize<Encoding::UTF32, Encoding::UTF16>(byte const *sourceBytes
 template <Encoding k_SourceEncoding, Encoding k_DestEncoding, typename StringType>
 StringType ReEncodeToString(byte const *sourceBytes, usz const sourceSize)
 {
-    StringType destString;
-    usz const destSize =
-        CountReEncodedSize<k_SourceEncoding, k_DestEncoding>(sourceBytes, sourceSize);
-    destString.resize(destSize + 1, static_cast<StringType::value_type>(0));
+    StringType destString(
+        CountReEncodedSize<k_SourceEncoding, k_DestEncoding>(sourceBytes, sourceSize) / sizeof(StringType::value_type),
+        StringType::value_type(0));
     byte *destBytes = reinterpret_cast<byte *>(destString.data());
     ReEncode<k_SourceEncoding, k_DestEncoding>(sourceBytes, destBytes, sourceSize);
-
+    // utf-8 and utf-16 are multibyte character sets
+    // Although the destString constructor should lead to a string long enough 
+    if constexpr(k_DestEncoding == Encoding::UTF8 || k_DestEncoding == Encoding::UTF16)
+    {
+        destString.resize(StringType::traits_type::length(destString.data()));
+    }
     return destString;
 }
 
@@ -767,70 +796,70 @@ export template <> string string_cast<string>(string_view asciiView) = delete;
 export template <> string string_cast<string>(u8string_view utf8View)
 {
     return ReEncodeToString<Encoding::UTF8, Encoding::ASCII, string>(
-        reinterpret_cast<byte const *>(utf8View.data()), utf8View.size());
+        reinterpret_cast<byte const *>(utf8View.data()), utf8View.size() * sizeof(char8_t));
 }
 export template <> string string_cast<string>(u16string_view utf16View)
 {
     return ReEncodeToString<Encoding::UTF16, Encoding::ASCII, string>(
-        reinterpret_cast<byte const *>(utf16View.data()), utf16View.size());
+        reinterpret_cast<byte const *>(utf16View.data()), utf16View.size() * sizeof(char16_t));
 }
 export template <> string string_cast<string>(u32string_view utf32View)
 {
     return ReEncodeToString<Encoding::UTF32, Encoding::ASCII, string>(
-        reinterpret_cast<byte const *>(utf32View.data()), utf32View.size());
+        reinterpret_cast<byte const *>(utf32View.data()), utf32View.size() * sizeof(char32_t));
 }
 
 // Cast to utf8 u8string
 export template <> u8string string_cast<u8string>(string_view asciiView)
 {
     return ReEncodeToString<Encoding::ASCII, Encoding::UTF8, u8string>(
-        reinterpret_cast<byte const *>(asciiView.data()), asciiView.size());
+        reinterpret_cast<byte const *>(asciiView.data()), asciiView.size() * sizeof(char));
 }
 export template <> u8string string_cast<u8string>(u8string_view utf8View) = delete;
 export template <> u8string string_cast<u8string>(u16string_view utf16View)
 {
     return ReEncodeToString<Encoding::UTF16, Encoding::UTF8, u8string>(
-        reinterpret_cast<byte const *>(utf16View.data()), utf16View.size());
+        reinterpret_cast<byte const *>(utf16View.data()), utf16View.size() * sizeof(char16_t));
 }
 export template <> u8string string_cast<u8string>(u32string_view utf32View)
 {
     return ReEncodeToString<Encoding::UTF32, Encoding::UTF8, u8string>(
-        reinterpret_cast<byte const *>(utf32View.data()), utf32View.size());
+        reinterpret_cast<byte const *>(utf32View.data()), utf32View.size() * sizeof(char32_t));
 }
 
 // Cast to utf16 u16string
 export template <> u16string string_cast<u16string>(string_view asciiView)
 {
     return ReEncodeToString<Encoding::ASCII, Encoding::UTF16, u16string>(
-        reinterpret_cast<byte const *>(asciiView.data()), asciiView.size());
+        reinterpret_cast<byte const *>(asciiView.data()), asciiView.size() * sizeof(char));
 }
 export template <> u16string string_cast<u16string>(u8string_view utf8View)
 {
-    return ReEncodeToString<Encoding::ASCII, Encoding::UTF16, u16string>(
-        reinterpret_cast<byte const *>(utf8View.data()), utf8View.size());
+    return ReEncodeToString<Encoding::UTF8, Encoding::UTF16, u16string>(
+        reinterpret_cast<byte const *>(utf8View.data()), utf8View.size() * sizeof(char8_t));
 }
 export template <> u16string string_cast<u16string>(u16string_view utf16View) = delete;
 export template <> u16string string_cast<u16string>(u32string_view utf32View)
 {
-    return ReEncodeToString<Encoding::ASCII, Encoding::UTF32, u16string>(
-        reinterpret_cast<byte const *>(utf32View.data()), utf32View.size());
+    return ReEncodeToString<Encoding::UTF32, Encoding::UTF16, u16string>(
+        reinterpret_cast<byte const *>(utf32View.data()), utf32View.size() * sizeof(char32_t));
 }
 
 // Cast to utf32 u32string
 export template <> u32string string_cast<u32string>(string_view asciiView)
 {
     return ReEncodeToString<Encoding::ASCII, Encoding::UTF32, u32string>(
-        reinterpret_cast<byte const *>(asciiView.data()), asciiView.size());
+        reinterpret_cast<byte const *>(asciiView.data()), asciiView.size() * sizeof(char));
 }
 export template <> u32string string_cast<u32string>(u8string_view utf8View)
 {
     return ReEncodeToString<Encoding::UTF8, Encoding::UTF32, u32string>(
-        reinterpret_cast<byte const *>(utf8View.data()), utf8View.size());
+        reinterpret_cast<byte const *>(utf8View.data()), utf8View.size() * sizeof(char8_t));
 }
 export template <> u32string string_cast<u32string>(u16string_view utf16View)
 {
     return ReEncodeToString<Encoding::UTF16, Encoding::UTF32, u32string>(
-        reinterpret_cast<byte const *>(utf16View.data()), utf16View.size());
+        reinterpret_cast<byte const *>(utf16View.data()), utf16View.size() * sizeof(char16_t));
 }
 export template <> u32string string_cast<u32string>(u32string_view utf32View) = delete;
 
