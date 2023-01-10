@@ -21,7 +21,7 @@
 
 import Lateralus.Core.Signal;
 import Lateralus.Core.ByteConversion;
-import Lateralus.Core.UtfConversion;
+import Lateralus.Core.EncodingConversion;
 import Lateralus.Platform;
 #if ENABLE_IMGUI
 import Lateralus.Platform.ImGuiWidget.Core;

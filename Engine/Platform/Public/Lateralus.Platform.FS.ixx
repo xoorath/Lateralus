@@ -21,7 +21,7 @@ import <optional>;
 
 import Lateralus.Core;
 import Lateralus.Core.StringUtils;
-import Lateralus.Core.UtfConversion;
+import Lateralus.Core.EncodingConversion;
 import Lateralus.Platform.Error;
 
 namespace fs = std::filesystem;
@@ -29,7 +29,7 @@ using namespace std;
 using namespace std::string_view_literals;
 using namespace Lateralus::Core;
 using namespace Lateralus::Core::StringUtils;
-using namespace Lateralus::Core::UtfConversion;
+using namespace Lateralus::Core::EncodingConversion;
 
 namespace Lateralus::Platform::FS
 {

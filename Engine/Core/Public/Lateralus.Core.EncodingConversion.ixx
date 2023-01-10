@@ -1,12 +1,26 @@
-export module Lateralus.Core.UtfConversion;
+export module Lateralus.Core.EncodingConversion;
 
+import <bit>;
+import <concepts>;
 import <string>;
 import Lateralus.Core;
 
 using namespace std;
 
-namespace Lateralus::Core::UtfConversion
+namespace Lateralus::Core::EncodingConversion
 {
+export
+template <typename Type>
+concept StringTypes = std::is_same<Type, string>::value || std::is_same<Type, wstring>::value ||
+                    std::is_same<Type, u8string>::value || std::is_same<Type, u16string>::value ||
+                    std::is_same<Type, u32string>::value;
+
+export template <typename Type>
+concept CharTypes = std::is_same<Type, char>::value || std::is_same<Type, wchar_t>::value ||
+                      std::is_same<Type, char8_t>::value || std::is_same<Type, char16_t>::value ||
+                      std::is_same<Type, char32_t>::value;
+
+
 export enum class Encoding {
     ASCII,
     UTF8,
@@ -31,6 +45,28 @@ usz CountReEncodedSize(byte const *sourceBytes, usz sourceSize) = delete;
 
 export template <Encoding sourceEncoding, Encoding destEncoding>
 void ReEncode(byte const *sourceBytes, byte *destBytes, usz sourceSize) = delete;
+
+
+export template<typename T>
+inline void EnsureLittleEndian(T& value)
+{
+    if constexpr(std::endian::native == std::endian::big)
+    {
+        union 
+        {
+            T swapped;
+            std::array<byte, sizeof(T)> asArray;
+        } u { value };
+
+        for(size_t i = 0; i < sizeof(T)/2; ++i)
+        {
+            byte swap = asArray[i];
+            u.asArray[i] = u.asArray[sizeof(T)-i-1];
+            u.asArray[sizeof(T)-i-1] = u.asArray[i];
+        }
+        value = u.swapped;
+    }
+}
 
 //////////////////////////////////////////////////////////////////////////
 // Ascii conversions
@@ -415,7 +451,8 @@ void ReEncode<Encoding::UTF16, Encoding::ASCII>(byte const *sourceBytes, byte *d
 
     for (usz i = 0; i < sourceLength; ++i)
     {
-        auto const &codepoint = sourceAs16[i];
+        char16_t codepoint = sourceAs16[i];
+        EnsureLittleEndian(codepoint);
         if (codepoint <= 0x7F)
         {
             *(destAs8++) = codepoint;
@@ -443,7 +480,8 @@ void ReEncode<Encoding::UTF16, Encoding::UTF8>(byte const *sourceBytes, byte *de
 
     for (usz i = 0; i < sourceLength; ++i)
     {
-        char16_t const &codepoint = sourceAs16[i];
+        char16_t codepoint = sourceAs16[i];
+        EnsureLittleEndian(codepoint);
         // check if the character is a BMP (Basic Multilingual Plane) character
         if (codepoint <= 0xFFFF)
         {
@@ -767,7 +805,7 @@ usz CountReEncodedSize<Encoding::UTF32, Encoding::UTF16>(byte const *sourceBytes
 //////////////////////////////////////////////////////////////////////////
 
 // A helper to simplify casting code
-template <Encoding k_SourceEncoding, Encoding k_DestEncoding, typename StringType>
+template <Encoding k_SourceEncoding, Encoding k_DestEncoding, StringTypes StringType>
 StringType ReEncodeToString(byte const *sourceBytes, usz const sourceSize)
 {
     StringType destString(
@@ -776,7 +814,8 @@ StringType ReEncodeToString(byte const *sourceBytes, usz const sourceSize)
     byte *destBytes = reinterpret_cast<byte *>(destString.data());
     ReEncode<k_SourceEncoding, k_DestEncoding>(sourceBytes, destBytes, sourceSize);
     // utf-8 and utf-16 are multibyte character sets
-    // Although the destString constructor should lead to a string long enough 
+    // Although the destString constructor should provide a correctly sized buffer the resulting string length
+    // may be shorter whenever multibyte characters are present. This condition accounts for that.
     if constexpr(k_DestEncoding == Encoding::UTF8 || k_DestEncoding == Encoding::UTF16)
     {
         destString.resize(StringType::traits_type::length(destString.data()));
@@ -786,10 +825,10 @@ StringType ReEncodeToString(byte const *sourceBytes, usz const sourceSize)
 
 // These are the conversion methods without any specialization.
 // Specialization will only exist where it makes sense (example: utf8->utf8 will not be specialized)
-export template <typename StringType> StringType string_cast(string_view asciiView);
-export template <typename StringType> StringType string_cast(u8string_view utf8View);
-export template <typename StringType> StringType string_cast(u16string_view utf16View);
-export template <typename StringType> StringType string_cast(u32string_view utf32View);
+export template <StringTypes StringType> StringType string_cast(string_view asciiView);
+export template <StringTypes StringType> StringType string_cast(u8string_view utf8View);
+export template <StringTypes StringType> StringType string_cast(u16string_view utf16View);
+export template <StringTypes StringType> StringType string_cast(u32string_view utf32View);
 
 // Cast to ascii string
 export template <> string string_cast<string>(string_view asciiView) = delete;
@@ -863,4 +902,4 @@ export template <> u32string string_cast<u32string>(u16string_view utf16View)
 }
 export template <> u32string string_cast<u32string>(u32string_view utf32View) = delete;
 
-} // namespace Lateralus::Core::UtfConversion
+} // namespace Lateralus::Core::EncodingConversion

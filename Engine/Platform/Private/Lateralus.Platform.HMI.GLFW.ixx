@@ -7,7 +7,7 @@ export module Lateralus.Platform.HMI.GLFW;
 #if ENABLE_GLFW
 
 import Lateralus.Core;
-import Lateralus.Core.UtfConversion;
+import Lateralus.Core.EncodingConversion;
 import Lateralus.Platform.Error;
 import Lateralus.Platform.HMI;
 import <array>;
@@ -15,7 +15,7 @@ import <optional>;
 
 using namespace std;
 using namespace Lateralus::Core;
-using namespace Lateralus::Core::UtfConversion;
+using namespace Lateralus::Core::EncodingConversion;
 
 namespace Lateralus::Platform::HMI::GLFW
 {

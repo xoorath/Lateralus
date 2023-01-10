@@ -1,12 +1,12 @@
 ﻿#include PCH_FILE
 
 import Lateralus.Core;
-import Lateralus.Core.UtfConversion;
+import Lateralus.Core.EncodingConversion;
 
 #include <gtest/gtest.h>
 #include <string>
 
-using namespace Lateralus::Core::UtfConversion;
+using namespace Lateralus::Core::EncodingConversion;
 using namespace Lateralus::Core;
 
 template <typename T> inline byte const *byte_cast(T const *t)
@@ -20,7 +20,7 @@ template <typename T> inline byte *byte_cast(T *t)
 
 namespace Lateralus::Core::Tests
 {
-TEST(Core_UtfConversionTest, AsciiToUtf8)
+TEST(Core_EncodingConversionTest, AsciiToUtf8)
 {
     std::string ascii = "Hello, world!";
     std::u8string utf8(
@@ -32,7 +32,7 @@ TEST(Core_UtfConversionTest, AsciiToUtf8)
     EXPECT_EQ(utf8.compare(u8"Hello, world!"), 0);
 }
 
-TEST(Core_UtfConversionTest, AsciiToUtf16)
+TEST(Core_EncodingConversionTest, AsciiToUtf16)
 {
     std::string ascii = "Hello, world!";
     std::u16string utf16(CountReEncodedSize<Encoding::ASCII, Encoding::UTF16>(
@@ -44,7 +44,7 @@ TEST(Core_UtfConversionTest, AsciiToUtf16)
     EXPECT_EQ(utf16.compare(u"Hello, world!"), 0);
 }
 
-TEST(Core_UtfConversionTest, AsciiToUtf32)
+TEST(Core_EncodingConversionTest, AsciiToUtf32)
 {
     std::string ascii = "Hello, world!";
     std::u32string utf32(CountReEncodedSize<Encoding::ASCII, Encoding::UTF32>(
@@ -56,7 +56,7 @@ TEST(Core_UtfConversionTest, AsciiToUtf32)
     EXPECT_EQ(utf32.compare(U"Hello, world!"), 0);
 }
 
-TEST(Core_UtfConversionTest, Utf8ToAscii)
+TEST(Core_EncodingConversionTest, Utf8ToAscii)
 {
     {
         std::u8string utf8 = u8"Hello, world!";
@@ -74,7 +74,7 @@ TEST(Core_UtfConversionTest, Utf8ToAscii)
               string_cast<std::string>(u8"(\u982d)")); // \u982d == 頭
 }
 
-TEST(Core_UtfConversionTest, Utf8ToUtf16)
+TEST(Core_EncodingConversionTest, Utf8ToUtf16)
 {
     {
         std::u8string utf8 = u8"Hello, world!";
@@ -94,7 +94,7 @@ TEST(Core_UtfConversionTest, Utf8ToUtf16)
               0); // \u982d == 頭
 }
 
-TEST(Core_UtfConversionTest, Utf8ToUtf32)
+TEST(Core_EncodingConversionTest, Utf8ToUtf32)
 {
     {
         std::u8string utf8 = u8"Hello, world!";
@@ -112,7 +112,7 @@ TEST(Core_UtfConversionTest, Utf8ToUtf32)
               0); // \u982d == 頭
 }
 
-TEST(Core_UtfConversionTest, Utf16ToAscii)
+TEST(Core_EncodingConversionTest, Utf16ToAscii)
 {
     {
         std::u16string utf16 = u"Hello, world!";
@@ -128,7 +128,7 @@ TEST(Core_UtfConversionTest, Utf16ToAscii)
               string_cast<std::string>(u"(\u982d)")); // \u982d == 頭
 }
 
-TEST(Core_UtfConversionTest, Utf16ToUtf8)
+TEST(Core_EncodingConversionTest, Utf16ToUtf8)
 {
     {
         std::u16string utf16 = u"Hello, world!";
@@ -145,7 +145,7 @@ TEST(Core_UtfConversionTest, Utf16ToUtf8)
               0); // \u982d == 頭
 }
 
-TEST(Core_UtfConversionTest, Utf16ToUtf32)
+TEST(Core_EncodingConversionTest, Utf16ToUtf32)
 {
     {
         std::u16string utf16 = u"Hello, world!";
@@ -162,7 +162,7 @@ TEST(Core_UtfConversionTest, Utf16ToUtf32)
     EXPECT_EQ(string_cast<std::u32string>(u"(\u982d)").compare(U"(\u982d)"),
               0); // \u982d == 頭
 }
-TEST(Core_UtfConversionTest, Utf32ToAscii)
+TEST(Core_EncodingConversionTest, Utf32ToAscii)
 {
     {
         std::u32string utf32 = U"Hello, world!";
@@ -178,7 +178,7 @@ TEST(Core_UtfConversionTest, Utf32ToAscii)
               string_cast<std::string>(U"(\u982d)")); // \u982d == 頭
 }
 
-TEST(Core_UtfConversionTest, Utf32ToUtf8)
+TEST(Core_EncodingConversionTest, Utf32ToUtf8)
 {
     {
         std::u32string utf32 = U"Hello, world!";
@@ -195,7 +195,7 @@ TEST(Core_UtfConversionTest, Utf32ToUtf8)
               0); // \u982d == 頭
 }
 
-TEST(Core_UtfConversionTest, Utf32ToUtf16)
+TEST(Core_EncodingConversionTest, Utf32ToUtf16)
 {
     {
         std::u32string utf32 = U"Hello, world!";
