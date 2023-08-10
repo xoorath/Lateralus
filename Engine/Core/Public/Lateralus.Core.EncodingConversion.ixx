@@ -1,5 +1,4 @@
 export module Lateralus.Core.EncodingConversion;
-
 import <bit>;
 import <concepts>;
 import <string>;
@@ -481,44 +480,50 @@ void ReEncode<Encoding::UTF16, Encoding::UTF8>(byte const *sourceBytes, byte *de
     for (usz i = 0; i < sourceLength; ++i)
     {
         char16_t codepoint = sourceAs16[i];
-        EnsureLittleEndian(codepoint);
-        // check if the character is a BMP (Basic Multilingual Plane) character
-        if (codepoint <= 0xFFFF)
+
+        // Check if the character is a high surrogate (part of a supplementary character)
+        if (codepoint >= 0xD800 && codepoint <= 0xDBFF)
         {
-            // codepoint: 00000000'00000000'0000xxxx'xxxxxxxx
-            // result:    0xxxxxxx'00000000'00000000'00000000
-            *(destAs8++) = codepoint & 0b01111111;
-        }
-        // check if the character is a high surrogate (part of a supplementary character)
-        else if (codepoint >= 0xD800 && codepoint <= 0xDBFF)
-        {
-            // check if the next character is a low surrogate
+            // Check if the next character is a low surrogate
             if (i + 1 < sourceLength && sourceAs16[i + 1] >= 0xDC00 && sourceAs16[i + 1] <= 0xDFFF)
             {
-                // combine the high and low surrogates to form the codepoint
+                // Combine the high and low surrogates to form the codepoint
                 char32_t codepoint32 =
                     ((codepoint - 0xD800) << 10) + (sourceAs16[i + 1] - 0xDC00) + 0x10000;
-                // codepoint: 00000000'000yyyyy'yyyyxxxx'xxxxxxxx
-                // result: 11110yyy'10yxxxxx'00000000'00000000
-                *(destAs8++) = 0b11110000 | ((codepoint32 >> 18) & 0b00000111); // 11110yyy;
-                // codepoint: 00000000'00000000'zzzzyyyy'yyxxxxxx
-                // result: 10zzzzzz'10yyyyyy'10xxxxxx'00000000
-                *(destAs8++) = 0b10000000 | ((codepoint32 >> 12) & 0b00111111); // 10zzzzzz;
-                *(destAs8++) = 0b10000000 | ((codepoint32 >> 6) & 0b00111111);  // 10yyyyyy;
-                *(destAs8++) = 0b10000000 | (codepoint32 & 0b00111111);         // 10xxxxxx;
-                // skip the next character (the low surrogate)
+
+                // Encode the supplementary character as UTF-8
+                *(destAs8++) = static_cast<char8_t>(0xF0 | ((codepoint32 >> 18) & 0x07));
+                *(destAs8++) = static_cast<char8_t>(0x80 | ((codepoint32 >> 12) & 0x3F));
+                *(destAs8++) = static_cast<char8_t>(0x80 | ((codepoint32 >> 6) & 0x3F));
+                *(destAs8++) = static_cast<char8_t>(0x80 | (codepoint32 & 0x3F));
+
+                // Skip the next character (the low surrogate)
                 i++;
             }
             else
             {
-                // this is an error or unsupported case
-                *(destAs8++) = u8'?';
+                // Handle error or unsupported case for high surrogate
+                *(destAs8++) = static_cast<char8_t>(u8'?');
             }
         }
         else
         {
-            // this is an error or unsupported case
-            *(destAs8++) = u8'?';
+            // This is a BMP character (1 to 3 bytes in UTF-8)
+            if (codepoint <= 0x7F)
+            {
+                *(destAs8++) = static_cast<char8_t>(codepoint);
+            }
+            else if (codepoint <= 0x7FF)
+            {
+                *(destAs8++) = static_cast<char8_t>(0xC0 | ((codepoint >> 6) & 0x1F));
+                *(destAs8++) = static_cast<char8_t>(0x80 | (codepoint & 0x3F));
+            }
+            else
+            {
+                *(destAs8++) = static_cast<char8_t>(0xE0 | ((codepoint >> 12) & 0x0F));
+                *(destAs8++) = static_cast<char8_t>(0x80 | ((codepoint >> 6) & 0x3F));
+                *(destAs8++) = static_cast<char8_t>(0x80 | (codepoint & 0x3F));
+            }
         }
     }
 }
@@ -531,32 +536,33 @@ usz CountReEncodedSize<Encoding::UTF16, Encoding::UTF8>(byte const *sourceBytes,
     for (usz i = 0; i < sourceLength; ++i)
     {
         char16_t const &codepoint = sourceAs16[i];
-        // check if the character is a BMP (Basic Multilingual Plane) character
-        if (codepoint <= 0xFFFF)
+
+        // Check if the character is a high surrogate (part of a supplementary character)
+        if (codepoint >= 0xD800 && codepoint <= 0xDBFF)
         {
-            encodedLength++;
-        }
-        // check if the character is a high surrogate (part of a supplementary character)
-        else if (codepoint >= 0xD800 && codepoint <= 0xDBFF)
-        {
-            // check if the next character is a low surrogate
+            // Check if the next character is a low surrogate
             if (i + 1 < sourceLength && sourceAs16[i + 1] >= 0xDC00 && sourceAs16[i + 1] <= 0xDFFF)
             {
-                // a supplementary character consists of 4 UTF-8 bytes
+                // This is a supplementary character (4 bytes in UTF-8)
                 encodedLength += 4;
-                // skip the next character (the low surrogate)
+                // Skip the next character (the low surrogate)
                 i++;
             }
             else
             {
-                // this is an error or unsupported case
-                encodedLength++;
+                // Handle error or unsupported case for high surrogate
+                // You might want to add proper error handling here
             }
         }
         else
         {
-            // this is an error or unsupported case
-            encodedLength++;
+            // This is a BMP character (1 to 3 bytes in UTF-8)
+            if (codepoint <= 0x7F)
+                encodedLength += 1;
+            else if (codepoint <= 0x7FF)
+                encodedLength += 2;
+            else
+                encodedLength += 3;
         }
     }
     return encodedLength;
