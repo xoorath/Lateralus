@@ -40,7 +40,7 @@ jobs:
       - name: Get msbuild 17
         uses: microsoft/setup-msbuild@v1.1
         with:
-          vs-version: 17.7
+          vs-version: 17
 
       - name: Build app for ${{ matrix.configuration }}
         run: msbuild generated\lateralus_vs2022_win64.sln -t:rebuild -property:Configuration=${{ matrix.configuration }}
