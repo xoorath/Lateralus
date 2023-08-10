@@ -52,7 +52,7 @@ namespace
 {
 constexpr uint32 k_OpenGLVersionMajor = 3;
 constexpr uint32 k_OpenGLVersionMinor = 2;
-char const *k_GlslVersion = "#version 150";
+static constexpr auto k_GlslVersion = "#version 150";
 } // namespace
 
 export class Window : public iWindow

@@ -1,4 +1,4 @@
-#include PCH_FILE
+#include <gtest/gtest.h>
 
 import Lateralus.Core;
 import Lateralus.Core.StringUtils;

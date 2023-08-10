@@ -12,6 +12,11 @@ namespace Lateralus
         private IReadOnlyCollection<string> m_ProjectSource =>
             new[] { @"[project.SharpmakeCsPath]\Tests" };
 
+        // At the time of writing visual studio 17.7.0 is unable to utilize PCH and modules together
+        // in the way lateralus utilizes them. Because of this I'm disabling PCH for the time being
+        // despite 17.4.0 being capable of handling that combination.
+        private bool UsePCH => false;
+
         public TestProject() : base()
         {
             Name = ProjectName;
@@ -30,10 +35,13 @@ namespace Lateralus
             conf.Output = Configuration.OutputType.Exe;
 
             // Precompile headers
-            conf.PrecompHeader = $@"[project.SharpmakeCsPath]\Tests\pch.h";
-            conf.PrecompSource = $@"[project.SharpmakeCsPath]\Tests\pch.cpp";
-            conf.Options.Add(Options.Vc.SourceFile.PrecompiledHeader.UsePrecompiledHeader);
-            conf.Defines.Add($@"PCH_FILE=""[project.SharpmakeCsPath]\Tests\pch.h""");
+            if (UsePCH)
+            {
+                conf.IncludePaths.Add($@"[project.SharpmakeCsPath]\Tests\");
+                conf.PrecompHeader = $@"pch.h";
+                conf.PrecompSource = $@"[project.SharpmakeCsPath]\Tests\pch.cpp";
+                conf.Options.Add(Options.Vc.SourceFile.PrecompiledHeader.UsePrecompiledHeader);
+            }
 
             string toTestBaseName = typeof(ProjectTypeToTest).BaseType.ToString();
             if (toTestBaseName == typeof(EngineProject).ToString())

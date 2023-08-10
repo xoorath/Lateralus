@@ -27,11 +27,9 @@ Run `./Tools/Powershell/Sharpmake.ps1` in powershell. This will create a solutio
 Open the solution in visual studio and build.
 
 # Conan
-
 Lateralus uses conan to import packages and uses sharpmake to parse the conan output to link those packages into projects.
 
 # Sharpmake
-
 [Sharpmake](https://github.com/ubisoft/Sharpmake) is used to generate the solution and project files programmatically. This allows us to use C# to define what gets built and how across any target on any platform.
 
 `BuildSystem/Sharpmake/` contains all of the project-wide sharpmake code such as base classes for new projects and configurations that apply widely across Lateralus.

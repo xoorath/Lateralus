@@ -1,10 +1,8 @@
-﻿#include PCH_FILE
+﻿#include <gtest/gtest.h>
+#include <string>
 
 import Lateralus.Core;
 import Lateralus.Core.EncodingConversion;
-
-#include <gtest/gtest.h>
-#include <string>
 
 using namespace Lateralus::Core::EncodingConversion;
 using namespace Lateralus::Core;
