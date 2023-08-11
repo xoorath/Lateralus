@@ -44,3 +44,9 @@ jobs:
 
       - name: Build app for ${{ matrix.configuration }}
         run: msbuild generated\lateralus_vs2022_win64.sln -t:rebuild -property:Configuration=${{ matrix.configuration }}
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: Hello World - win64 ${{ lowercase(matrix.configuration) }}
+          path: |
+            generated\hello world_vs2022_win64\output\win64\${{ lowercase(matrix.configuration) }}\*

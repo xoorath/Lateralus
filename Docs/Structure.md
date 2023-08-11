@@ -1,7 +1,7 @@
 # Project Types
 
 ## Core
-Engine core is included by every other engine library and every application. It is the top most dependancy of everything and is intended to be fast to compile and slim.
+Engine core is included by every other engine library and every application. It is the top most dependency of everything and is intended to be fast to compile and slim.
 
 ## Platform
 The platform layer contains windowing and platform interaction code with abstractions to prevent leaking details to other libraries.
@@ -10,9 +10,9 @@ The code for window creation, system level input handling and imgui bindings liv
 
 ## Utilities
 
-Utility projects live in [../Tools/Utilities](../Tools/Utilities) as stand alone applications that don't implicitly get all the same dependancies as engine and application projects.
+Utility projects live in [../Tools/Utilities](../Tools/Utilities) as stand alone applications that don't implicitly get all the same dependencies as engine and application projects.
 
-The idea is that these are individual programs that have very few responsibilities and dependancies and are not held to the same standard of robustness and architecture as engine projects. One example is [FontToSource](../Tools/Utilities/FontToSource) which takes a .TTF font as input and outputs a .cpp or .ixx file with that data.
+The idea is that these are individual programs that have very few responsibilities and dependencies and are not held to the same standard of robustness and architecture as engine projects. One example is [FontToSource](../Tools/Utilities/FontToSource) which takes a .TTF font as input and outputs a .cpp or .ixx file with that data.
 
 ## Third Party
 
@@ -46,7 +46,7 @@ namespace Lateralus::Platform::Input
 
 In the above example the file name, module scope and namespaces match. The pattern used is: `<engine/app name>::<project name>::<module name>`. 
 
-The namespace may be excluded if a singular module named export is used. For example:
+The namespace may be excluded if a singular module-named export is used. For example:
 
 `Lateralus.Core.CPUID.ixx`
 ```
