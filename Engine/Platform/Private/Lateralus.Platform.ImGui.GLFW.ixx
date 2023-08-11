@@ -60,8 +60,9 @@ import Lateralus.Core;
 import Lateralus.Platform.HMI;
 import Lateralus.Platform.ImGui.Impl;
 import Lateralus.Platform.Error;
-import Lateralus.Platform.Font.NotoEmojiRegular;
 import Lateralus.Platform.Font.NotoSansRegular;
+import Lateralus.Platform.Font.NotoColorEmoji;
+
 
 using namespace std;
 using namespace Lateralus::Core;
@@ -157,14 +158,15 @@ public:
 
         {
             ImWchar ranges[] = {(ImWchar)0x1, (ImWchar)0x1FFFF, (ImWchar)0};
-            strcpy_s(NotoEmojiRegularCfg.Name, "Noto Emoji Regular");
+            strcpy_s(NotoEmojiRegularCfg.Name, "Noto Color Emoji");
             NotoEmojiRegularCfg.OversampleH = NotoEmojiRegularCfg.OversampleV = 1;
             NotoEmojiRegularCfg.MergeMode = true;
             NotoEmojiRegularCfg.FontBuilderFlags |= ImGuiFreeTypeBuilderFlags_LoadColor;
-
-            io.Fonts->AddFontFromMemoryCompressedTTF(
-                reinterpret_cast<void *>(NotoEmojiRegular_data),
-                static_cast<int>(NotoEmojiRegular_size), 24, &NotoEmojiRegularCfg, ranges);
+            /*io.Fonts->AddFontFromFileTTF("C:\\Users\\Jared\\Downloads\\noto-untouchedsvg.ttf",
+                                         32.0f, &NotoEmojiRegularCfg, ranges);*/
+            io.Fonts->AddFontFromMemoryCompressedTTF(reinterpret_cast<void *>(NotoColorEmoji_data),
+                                                     static_cast<int>(NotoColorEmoji_size), 32,
+                                                     &NotoEmojiRegularCfg, ranges);
         }
     }
 

@@ -54,6 +54,12 @@ int main(int argc, char **argv)
         }
     }
 
+    if (params.size() == 0)
+    {
+        PrintHelp();
+        return 0;
+    }
+
     string_view inputParam, outputParam, symbolParam, namespaceParam;
 
     for (int i = 0; i < params.size() - 1; ++i)

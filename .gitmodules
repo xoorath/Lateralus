@@ -4,3 +4,6 @@
 [submodule "ThirdParty/imgui"]
 	path = ThirdParty/imgui
 	url = https://github.com/ocornut/imgui.git
+[submodule "ThirdParty/lunasvg"]
+	path = ThirdParty/lunasvg
+	url = https://github.com/sammycage/lunasvg.git

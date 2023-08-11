@@ -73,11 +73,11 @@ void render_conan_logo()
                              ImColor(col3));
     draw_list->AddLine(ImVec2(x + 0.75 * sz, y + 0.375 * sz), ImVec2(x + 0.75 * sz, y + 0.875 * sz),
                        ImColor(col4));
-    draw_list->AddBezierCurve(ImVec2(x + 0.72 * sz, y + 0.24 * sz),
+    draw_list->AddBezierCubic(ImVec2(x + 0.72 * sz, y + 0.24 * sz),
                               ImVec2(x + 0.68 * sz, y + 0.15 * sz),
                               ImVec2(x + 0.48 * sz, y + 0.13 * sz),
                               ImVec2(x + 0.39 * sz, y + 0.17 * sz), ImColor(col4), 10, 18);
-    draw_list->AddBezierCurve(ImVec2(x + 0.39 * sz, y + 0.17 * sz),
+    draw_list->AddBezierCubic(ImVec2(x + 0.39 * sz, y + 0.17 * sz),
                               ImVec2(x + 0.2 * sz, y + 0.25 * sz),
                               ImVec2(x + 0.3 * sz, y + 0.35 * sz),
                               ImVec2(x + 0.49 * sz, y + 0.38 * sz), ImColor(col4), 10, 18);

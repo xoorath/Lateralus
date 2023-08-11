@@ -115,6 +115,7 @@
 // provided). On Windows you may use vcpkg with 'vcpkg install freetype --triplet=x64-windows' +
 // 'vcpkg integrate install'.
 #define IMGUI_ENABLE_FREETYPE
+#define IMGUI_ENABLE_FREETYPE_LUNASVG
 
 //---- Use stb_truetype to build and rasterize the font atlas (default)
 // The only purpose of this define is if you want force compilation of the stb_truetype backend

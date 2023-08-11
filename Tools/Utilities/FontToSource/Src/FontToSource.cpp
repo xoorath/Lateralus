@@ -178,6 +178,11 @@ bool binary_to_compressed_c(string_view inputParam, string_view outputParam,
         ifstream inputFile;
         inputFile.open(string(inputParam), ios::in | ios::binary);
 
+        if (inputFile.fail()) {
+            cerr << "[Error] Could not open input file: " << inputParam << endl;
+            return false;
+        }
+
         inputFile.seekg(0, ifstream::end);
         size_t const length = static_cast<size_t>(inputFile.tellg());
         inputFile.seekg(0, ifstream::beg);

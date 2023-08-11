@@ -10,13 +10,6 @@ namespace Lateralus
         public ImguiProject()
             : base("imgui")
         {
-            
-            //AddTargets(new Target(
-            //    Platform.win64,
-            //    DevEnv.vs2022,
-            //    Optimization.Debug | Optimization.Release
-            //));
-
             SourceFilesExcludeRegex.AddRange(new[]
             {
                 $@"\\.github\\",
@@ -35,6 +28,8 @@ namespace Lateralus
             conf.IncludePaths.Add($@"[project.SharpmakeCsPath]\{ProjectName}\");
 
             conf.Defines.Add($@"IMGUI_USER_CONFIG=""[project.SharpmakeCsPath]\..\Engine\Platform\Private\imconfig.h""");
+
+            conf.AddPublicDependency<LunaSVGProject>(target, DependencySetting.Default);
         }
     }
 }

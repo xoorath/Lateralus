@@ -4,6 +4,7 @@
 #pragma once
 #if ENABLE_IMGUI
 #include "imgui.h" // IMGUI_API
+#ifndef IMGUI_DISABLE
 
 // Forward declarations
 struct ImFontAtlas;
@@ -56,7 +57,7 @@ IMGUI_API const ImFontBuilderIO *GetBuilderForFreeType();
 // separate memory heap if desired.
 IMGUI_API void SetAllocatorFunctions(void *(*alloc_func)(size_t sz, void *user_data),
                                      void (*free_func)(void *ptr, void *user_data),
-                                     void *user_data = NULL);
+                                     void *user_data = nullptr);
 
 // Obsolete names (will be removed soon)
 // Prefer using '#define IMGUI_ENABLE_FREETYPE'
@@ -69,4 +70,6 @@ static inline bool BuildFontAtlas(ImFontAtlas *atlas, unsigned int flags = 0)
 }
 #endif
 } // namespace ImGuiFreeType
+
+#endif // #ifndef IMGUI_DISABLE
 #endif
