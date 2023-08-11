@@ -1,4 +1,5 @@
 using Sharpmake;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -49,12 +50,19 @@ namespace Lateralus
                 }
                 ConanDependency dependancyInfo = matchingBuildInfo.First();
 
-                AddRangeUnique(conf.IncludePaths, dependancyInfo.include_paths);
-                AddRangeUnique(conf.LibraryPaths, dependancyInfo.lib_paths);
-                AddRangeUnique(conf.LibraryFiles, dependancyInfo.libs);
-                //AddRangeUnique(conf.LibraryFiles, dependancyInfo.system_libs);
+                conf.IncludePaths.AddRange(dependancyInfo.include_paths.Where(inc => !conf.IncludePaths.Contains(inc)));
+                conf.LibraryPaths.AddRange(dependancyInfo.lib_paths.Where(inc => !conf.LibraryPaths.Contains(inc)));
+                 
+                if (conf.Output.Equals(Project.Configuration.OutputType.Exe))
+                {
+                    conf.LibraryFiles.AddRange(dependancyInfo.libs.Where(inc => !conf.LibraryFiles.Contains(inc)));
+                }
+                else
+                {
+                    conf.DependenciesLibraryFiles.AddRange(dependancyInfo.libs.Where(inc => !conf.DependenciesLibraryFiles.Contains(inc)));
+                }
 
-                AddRangeUnique(conf.Defines, dependancyInfo.defines);
+                conf.Defines.AddRange(dependancyInfo.defines.Where(inc => !conf.Defines.Contains(inc)));
             }
         }
 
@@ -80,28 +88,6 @@ namespace Lateralus
             string conanBuildInfoFilePath = Path.GetFullPath(Path.Combine(conanGeneratedDir, conanBuildInfoFileName));
 
             return ConanBuildInfo.FromBuildInfoJsonFileName(conanBuildInfoFilePath);
-        }
-
-        private static void AddRangeUnique(ICollection<string> strings, IReadOnlyCollection<string> input)
-        {
-            if (input != null)
-            {
-                foreach (var i in input)
-                {
-                    if (!string.IsNullOrEmpty(i) && !strings.Contains(i))
-                    {
-                        strings.Add(i);
-                    }
-                }
-            }
-        }
-
-        private static void AddRangeUnique(UniqueList<string> strings, IReadOnlyCollection<string> input)
-        {
-            if(input != null && input.Any())
-            {
-                strings.AddRange(input.Where(s => !string.IsNullOrEmpty(s)));
-            }
         }
     }
 }

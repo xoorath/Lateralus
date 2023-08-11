@@ -26,7 +26,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-// Modifications by Jared Thomson in 2022 are mostly stylistic to fit within the
+// Modifications by Jared Thomson in 2022-2023 are mostly stylistic to fit within the
 // Lateralus project. Modifications include:
 // * C++20 module support (removal of header, exporting public functions)
 // * Pragma disable warning 5105 from Winbase.h
@@ -148,28 +148,30 @@ public:
         ImGuiIO &io = ::ImGui::GetIO();
 
         {
-            static ImFontConfig cfg;
-            strcpy_s(cfg.Name, "Noto Sans Regular");
+            strcpy_s(NotoSansRegularCfg.Name, "Noto Sans Regular");
             io.Fonts->AddFontFromMemoryCompressedTTF(reinterpret_cast<void *>(NotoSansRegular_data),
                                                      static_cast<int>(NotoSansRegular_size), 24,
-                                                     &cfg, io.Fonts->GetGlyphRangesDefault());
+                                                     &NotoSansRegularCfg,
+                                                     io.Fonts->GetGlyphRangesDefault());
         }
 
         {
-            static ImWchar ranges[] = {(ImWchar)0x1, (ImWchar)0x1FFFF, (ImWchar)0};
-            static ImFontConfig cfg;
-            strcpy_s(cfg.Name, "Noto Emoji Regular");
-            cfg.OversampleH = cfg.OversampleV = 1;
-            cfg.MergeMode = true;
-            cfg.FontBuilderFlags |= ImGuiFreeTypeBuilderFlags_LoadColor;
+            ImWchar ranges[] = {(ImWchar)0x1, (ImWchar)0x1FFFF, (ImWchar)0};
+            strcpy_s(NotoEmojiRegularCfg.Name, "Noto Emoji Regular");
+            NotoEmojiRegularCfg.OversampleH = NotoEmojiRegularCfg.OversampleV = 1;
+            NotoEmojiRegularCfg.MergeMode = true;
+            NotoEmojiRegularCfg.FontBuilderFlags |= ImGuiFreeTypeBuilderFlags_LoadColor;
 
             io.Fonts->AddFontFromMemoryCompressedTTF(
                 reinterpret_cast<void *>(NotoEmojiRegular_data),
-                static_cast<int>(NotoEmojiRegular_size), 24, &cfg, ranges);
+                static_cast<int>(NotoEmojiRegular_size), 24, &NotoEmojiRegularCfg, ranges);
         }
     }
 
 private:
+    ImFontConfig NotoSansRegularCfg = {};
+    ImFontConfig NotoEmojiRegularCfg = {};
+
     optional<Error> Init() override
     {
         if (m_Window == nullptr)
@@ -253,6 +255,12 @@ private:
 
             m_KeyActionCallbackToken = m_Input->GetKeyActionCallback() +=
                 [this](KeyCode code, KeyAction action, KeyModifier modifier) {
+                    
+                    if (code <= KeyCode::Key_UNKNOWN || code >= KeyCode::Key_LAST)
+                    {
+                        // This code is unbindable (imgui_internal contains the exact range)
+                        return;
+                    }
                     ImGuiIO &io = ::ImGui::GetIO();
                     if (action == KeyAction::Press)
                     {
@@ -291,6 +299,7 @@ private:
         }
 
         LoadFonts();
+        IM_ASSERT(io.Fonts->Build() && "Unable to build loaded fonts");
 
         return Success;
     }

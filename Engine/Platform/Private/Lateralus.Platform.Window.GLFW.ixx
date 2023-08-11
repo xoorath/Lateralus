@@ -4,8 +4,8 @@ module;
 #include <imgui.h>
 #endif
 
+#include <Core.Log.h>
 #include <Core.h>
-//#include <Core.Log.h>
 
 #if ENABLE_GLFW
 #include <GL/glew.h>
@@ -52,7 +52,6 @@ namespace
 {
 constexpr uint32 k_OpenGLVersionMajor = 3;
 constexpr uint32 k_OpenGLVersionMinor = 2;
-static constexpr auto k_GlslVersion = "#version 150";
 } // namespace
 
 export class Window : public iWindow
@@ -135,7 +134,7 @@ public:
                 implGlfw = make_shared<ImplGLFW>();
                 if (auto err = implGlfw->Init(m_Window, m_Input); err.has_value())
                 {
-                    //LOG_ERROR("Could not init imgui: implGlfw->Init() {}", err.value().GetErrorMessage());
+                    LOG_ERROR("Could not init imgui: implGlfw->Init() {}", err.value().GetErrorMessage());
                     break;
                 }
                 m_Impls.push_back(move(implGlfw));
@@ -143,9 +142,10 @@ public:
 
             {
                 shared_ptr<ImplOpenGL> implOpenGL = make_shared<ImplOpenGL>();
+                constexpr auto k_GlslVersion = "#version 150";
                 if (auto err = implOpenGL->Init(k_GlslVersion); err.has_value())
                 {
-                    //LOG_ERROR("Could not init imgui: implOpenGL->Init() {}", err.value().GetErrorMessage());
+                    LOG_ERROR("Could not init imgui: implOpenGL->Init() {}", err.value().GetErrorMessage());
                     break;
                 }
                 m_Impls.push_back(move(implOpenGL));

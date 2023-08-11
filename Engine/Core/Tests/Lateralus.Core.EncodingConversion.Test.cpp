@@ -191,6 +191,14 @@ TEST(Core_EncodingConversionTest, Utf32ToUtf8)
               0); // \u07ff == ߿
     EXPECT_EQ(string_cast<std::u8string>(U"(\u982d)").compare(u8"(\u982d)"),
               0); // \u982d == 頭
+
+    {
+        std::u32string input = U"(\U0001F40D)";
+        std::u8string left = string_cast<std::u8string>(input);
+        std::u8string right = {40, 240, 159, 144, 141, 41};
+        EXPECT_EQ(left.compare(right),
+              0); // \U0001F40D == 🐍
+    }
 }
 
 TEST(Core_EncodingConversionTest, Utf32ToUtf16)

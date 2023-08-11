@@ -748,7 +748,7 @@ usz CountReEncodedSize<Encoding::UTF32, Encoding::UTF8>(byte const *sourceBytes,
         }
         else if (codepoint <= 0b00011111'11111111'11111111)
         {
-            encodedLength += 3;
+            encodedLength += 4;
         }
         else
         {
