@@ -47,6 +47,6 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
-          name: Hello World - win64 ${{ lowercase(matrix.configuration) }}
+          name: Hello World - win64 ${{ matrix.configuration }}
           path: |
-            generated\hello world_vs2022_win64\output\win64\${{ lowercase(matrix.configuration) }}\*
+            generated\hello world_vs2022_win64\output\win64\${{ matrix.configuration }}\*
