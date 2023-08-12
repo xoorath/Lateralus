@@ -98,13 +98,14 @@ namespace Lateralus
 
                 if (conf.Output.Equals(Project.Configuration.OutputType.Lib))
                 {
-                    conf.DependenciesOtherLibraryFiles.AddRange(dependencyInfo.libs);
+                    conf.DependenciesBuiltTargetsLibraryFiles.AddRange(dependencyInfo.libs);
                 }
                 else
                 {
                     conf.LibraryFiles.AddRange(dependencyInfo.libs);
                 }
                 conf.Defines.AddRange(dependencyInfo.defines);
+                conf.ExportDefines.AddRange(dependencyInfo.defines);
             }
         }
 

@@ -41,32 +41,19 @@ namespace Lateralus
             });
         }
 
-
         [Configure()]
         public virtual void ConfigureAll(Configuration conf, Target target)
         {
             conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
             conf.ProjectPath = $@"{GetLateralusRootDirectory()}\generated\[project.Name]_[target.DevEnv]_[target.Platform]";
 
-            Func<bool, int> btoi = (bool b) => b ? 1 : 0;
-
-            conf.Options.AddRange(new object[] {
-                Options.Vc.General.WarningLevel.Level2,
-                Options.Vc.General.TreatWarningsAsErrors.Enable,
-                Options.Vc.General.CharacterSet.Unicode,
-
-                Options.Vc.Compiler.CppLanguageStandard.CPP20,
-                Options.Vc.Compiler.Exceptions.Enable,
-                Options.Vc.Compiler.RTTI.Disable
-            });
-
-            conf.Defines.Add(new[] {
-                "_CRT_SECURE_NO_WARNINGS=1",
-                "NOMINMAX=1",
-                "WIN32_LEAN_AND_MEAN=1"
-            });
+            if (target.DevEnv.HasAnyFlag(DevEnv.VisualStudio))
+            {
+                ConfigureVisualStudio(conf, target);
+            }
 
             {
+                Func<bool, int> btoi = (bool b) => b ? 1 : 0;
                 bool isX86 = target.Platform.HasFlag(Platform.win32);
                 bool isAMD64 = 
                     target.Platform.HasFlag(Platform.win64) 
@@ -98,7 +85,40 @@ namespace Lateralus
                     $@"PLATFORM_IS_X86={btoi(isX86)}",
                     $@"PLATFORM_IS_AMD64={btoi(isAMD64)}",
                 });
+            }
+        }
 
+        private void ConfigureVisualStudio(Configuration conf, Target target)
+        {
+            conf.Defines.Add(new[] {
+                    "_CRT_SECURE_NO_WARNINGS=1",
+                    "NOMINMAX=1",
+                    "WIN32_LEAN_AND_MEAN=1"
+                });
+
+            conf.Options.AddRange(new object[] {
+                Options.Vc.General.WarningLevel.Level2,
+                Options.Vc.General.TreatWarningsAsErrors.Enable,
+                Options.Vc.General.CharacterSet.Unicode,
+
+                Options.Vc.Compiler.CppLanguageStandard.CPP20,
+                Options.Vc.Compiler.Exceptions.Enable,
+                Options.Vc.Compiler.RTTI.Disable,
+
+                new Options.Vc.Linker.IgnoreSpecificLibraryNames("LIBCMT"),
+                new Options.Vc.Linker.DisableSpecificWarnings(
+                    "4006" // https://learn.microsoft.com/en-us/cpp/error-messages/tool-errors/linker-tools-warning-lnk4006?view=msvc-170
+                ),
+                new Options.Vc.Librarian.DisableSpecificWarnings(
+                    "4006" // https://learn.microsoft.com/en-us/cpp/error-messages/tool-errors/linker-tools-warning-lnk4006?view=msvc-170
+                )
+            });
+
+            if (target.Platform.HasFlag(Platform.win64))
+            {
+                // This define is intended to allow us to include files that depend on winnt
+                // without including all of windows.h (in some cases). Example: debugapi.h
+                conf.Defines.Add($@"_AMD64_");
             }
         }
 
