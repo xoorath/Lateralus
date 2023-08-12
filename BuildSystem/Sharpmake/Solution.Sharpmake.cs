@@ -22,8 +22,6 @@ public class LateralusSolution : Solution
         conf.SolutionFileName = "[solution.Name]_[target.DevEnv]_[target.Platform]";
         conf.SolutionPath = @"[solution.SharpmakeCsPath]\..\..\generated";
 
-        Conan.Install(conf, target);
-
         conf.AddProject<HelloWorldProject>(target);
 
         conf.AddProject<FontToSourceProject>(target);

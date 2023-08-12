@@ -94,12 +94,17 @@ namespace Lateralus
                 {
                     int lineNumber;
                     conf.Defines.Add($@"IMGUI_USER_CONFIG=""{GetCurrentCallingFileInfo(out lineNumber).DirectoryName}\..\Platform\Private\imconfig.h""");
-                    ThirdParty.ReferenceExternal(conf, target, new[] {
-                        ThirdParty.ExternalProject.freetype,
-                        ThirdParty.ExternalProject.libpng,
-                        ThirdParty.ExternalProject.brotli,
-                        ThirdParty.ExternalProject.bzip2,
-                        ThirdParty.ExternalProject.zlib
+
+                    Conan.AddExternalDependencies(conf, target, this, new ConanDependencies()
+                    {
+                        Requires = new[]
+                        {
+                            "freetype/2.12.1"
+                        },
+                        Options = new[]
+                        {
+                            "freetype:with_png=True"
+                        }
                     });
 
                     conf.AddPublicDependency<ImguiProject>(target, DependencySetting.Default);
@@ -107,9 +112,12 @@ namespace Lateralus
             }
 
             conf.Defines.Add("SPDLOG_ACTIVE_LEVEL=0");
-            ThirdParty.ReferenceExternal(conf, target, new[] {
-                ThirdParty.ExternalProject.spdlog,
-                ThirdParty.ExternalProject.fmt
+            Conan.AddExternalDependencies(conf, target, this, new ConanDependencies()
+            {
+                Requires = new[]
+                {
+                    "spdlog/[>=1.4.1]"
+                }
             });
         }
 

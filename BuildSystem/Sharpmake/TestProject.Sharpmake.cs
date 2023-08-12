@@ -63,7 +63,13 @@ namespace Lateralus
 
             conf.AddPublicDependency<ProjectTypeToTest>(target);
 
-            ThirdParty.ReferenceExternal(conf, target, new[] { ThirdParty.ExternalProject.gtest });
+            Conan.AddExternalDependencies(conf, target, this, new ConanDependencies()
+            {
+                Requires = new[]
+                {
+                    "gtest/1.8.1"
+                }
+            });
         }
 
         private FileInfo GetCurrentCallingFileInfo()

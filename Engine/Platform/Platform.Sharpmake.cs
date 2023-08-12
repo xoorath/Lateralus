@@ -29,11 +29,18 @@ namespace Lateralus
 
         private void ConfigurePC(Configuration conf, Target target)
         {
-            ThirdParty.ReferenceExternal(conf, target, new[] {
-                    ThirdParty.ExternalProject.glfw,
-                    ThirdParty.ExternalProject.glew
-                });
-            conf.LibraryFiles.Add("opengl32");
+            Conan.AddExternalDependencies(conf, target, this, new ConanDependencies() { 
+                Requires = new[]
+                {
+                    "glfw/3.3.8",
+                    "glew/2.2.0"
+                },
+                Options = new[]
+                {
+                    "glew:shared=False"
+                }
+            });
+            conf.DependenciesOtherLibraryFiles.Add("opengl32");
         }
     }
 }

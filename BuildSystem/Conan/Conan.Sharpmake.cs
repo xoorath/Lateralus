@@ -2,15 +2,116 @@ using Sharpmake;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.Json;
 
 
 
 namespace Lateralus
 {
-    class Conan
+    static class Conan
     {
-        public static void Install(Configuration conf, Target target)
+        // Shared state needs to be thread safe.
+        private static object s_Lock = new object();
+        private static Dictionary<string, ConanBuildInfo> s_BuildInfoCache = new Dictionary<string, ConanBuildInfo>();
+
+        public static void AddExternalDependencies(Project.Configuration conf, Target target, Project project, ConanDependencies dependencies)
+        {
+            string conanGeneratedDir, conanfilePath, conanBuildInfoFilePath;
+            GetPaths(conf, target, project, 
+                out conanGeneratedDir, 
+                out conanfilePath,
+                out conanBuildInfoFilePath);
+
+            if (!Directory.Exists(conanGeneratedDir))
+            {
+                Directory.CreateDirectory(conanGeneratedDir);
+            }
+
+            ConanBuildInfo existingBuildInfo = null;
+
+            string configText = dependencies.SerializeAsConanfile();
+            lock (s_Lock)
+            {
+                s_BuildInfoCache.TryGetValue(configText, out existingBuildInfo);
+            }
+            if (existingBuildInfo == null)
+            {
+                File.WriteAllText(conanfilePath, configText);
+            }
+
+            if (existingBuildInfo == null)
+            {
+                // This is so we can restore the CWD after running.
+                string cwd = Directory.GetCurrentDirectory();
+
+                ProcessStartInfo startInfo = new ProcessStartInfo();
+                startInfo.CreateNoWindow = false;
+                startInfo.UseShellExecute = false;
+                // Todo: ensure conan is installed and print a friendly message if it isn't.
+                startInfo.FileName = "conan";
+                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+
+                startInfo.WorkingDirectory = conanGeneratedDir;
+                startInfo.Arguments = $@"install ./ --build=missing{GetSettingsArguments(conf, target)}";
+
+                // Start the process with the info we specified.
+                // Call WaitForExit and then the using statement will close.
+                try
+                {
+                    using (Process exeProcess = Process.Start(startInfo))
+                    {
+                        exeProcess.WaitForExit();
+                        if (exeProcess.ExitCode != 0)
+                        {
+                            throw new LateralusError("Conan reported errors while running install");
+                        }
+                    }
+                    if (!File.Exists(conanBuildInfoFilePath))
+                    {
+                        throw new LateralusError($@"Conan didn't produce a conan build info file at {conanBuildInfoFilePath}");
+                    }
+                }
+                finally
+                {
+                    string changedcwd = Directory.GetCurrentDirectory();
+                    Directory.SetCurrentDirectory(cwd);
+                }
+            }
+
+            var buildInfo = existingBuildInfo == null ? ConanBuildInfo.FromBuildInfoJsonFileName(conanBuildInfoFilePath) : existingBuildInfo;
+
+            if (existingBuildInfo == null)
+            {
+                lock (s_Lock)
+                {
+                    s_BuildInfoCache[configText] = buildInfo;
+                }
+            }
+
+            foreach (ConanDependency dependencyInfo in buildInfo.dependencies)
+            {
+                conf.IncludePaths.AddRange(dependencyInfo.include_paths);
+                conf.LibraryPaths.AddRange(dependencyInfo.lib_paths);
+
+                if (conf.Output.Equals(Project.Configuration.OutputType.Lib))
+                {
+                    conf.DependenciesOtherLibraryFiles.AddRange(dependencyInfo.libs);
+                }
+                else
+                {
+                    conf.LibraryFiles.AddRange(dependencyInfo.libs);
+                }
+                conf.Defines.AddRange(dependencyInfo.defines);
+            }
+        }
+
+        private static void GetPaths(Project.Configuration conf, Target target, Project project,
+            out string conanGeneratedDir,
+            out string conanfilePath,
+            out string conanBuildInfoFilePath)
         {
             string lateralusRootDir = Path.GetFullPath(Path.Combine(
                 Util.PathMakeStandard(Util.GetCurrentSharpmakeFileInfo().DirectoryName),
@@ -22,32 +123,27 @@ namespace Lateralus
                 "generated"
             ));
 
-            string conanGeneratedDir = Path.GetFullPath(Path.Combine(
+            conanGeneratedDir = Path.GetFullPath(Path.Combine(
                 generatedPath,
                 "conan",
-                $@"{target.Platform.ToString()}_{target.DevEnv.ToString()}_{target.Optimization.ToString()}"
+                target.GetTargetString(),
+                project.Name
             ));
 
-            string conanfileDir = Path.GetFullPath(Path.Combine(
-                lateralusRootDir,
-                "BuildSystem",
-                "conan"
-            ));
+            // The conan process will look for this file name in the working directory.
+            // That implies this hard coded value needs to map to what conan expects.
+            const string conanfileFileName = "conanfile.txt";
+            conanfilePath = Path.Combine(conanGeneratedDir, conanfileFileName);
 
+            // The conan process will write to this file name in the working directory.
+            // That implies this hard coded value needs to map to what conan expects.
             const string conanBuildInfoFileName = "conanbuildinfo.json";
-            string conanBuildInfoFilePath = Path.GetFullPath(Path.Combine(conanGeneratedDir, conanBuildInfoFileName));
+            conanBuildInfoFilePath = Path.GetFullPath(Path.Combine(conanGeneratedDir, conanBuildInfoFileName));
+        }
 
-            string cwd = Directory.GetCurrentDirectory();
-
-            ProcessStartInfo startInfo = new ProcessStartInfo();
-            startInfo.CreateNoWindow = false;
-            startInfo.UseShellExecute = false;
-            startInfo.FileName = "conan";
-            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-
-            startInfo.WorkingDirectory = conanGeneratedDir;
-            startInfo.Arguments = $@"install {Path.GetRelativePath(conanGeneratedDir, conanfileDir)} --build=missing";
-
+        private static string GetSettingsArguments(Project.Configuration conf, Target target)
+        {
+            StringBuilder sb = new StringBuilder();
             foreach (SettingProvider settingProvider in new SettingProvider[] {
                 GetConanSettingArch,
                 GetConanSettingBuildType,
@@ -59,46 +155,15 @@ namespace Lateralus
                 string value = settingProvider(conf, target);
                 if (!string.IsNullOrWhiteSpace(value))
                 {
-                    startInfo.Arguments += $@" -s ""{value}""";
+                    sb.Append($@" -s """);
+                    sb.Append(value);
+                    sb.Append('"');
                 }
             }
-
-            if (!Directory.Exists(startInfo.WorkingDirectory))
-            {
-                Directory.CreateDirectory(startInfo.WorkingDirectory);
-            }
-
-            // Start the process with the info we specified.
-            // Call WaitForExit and then the using statement will close.
-            try
-            {
-                using (Process exeProcess = Process.Start(startInfo))
-                {
-                    exeProcess.WaitForExit();
-                    if (exeProcess.ExitCode != 0)
-                    {
-                        throw new LateralusError("Conan reported errors while running install");
-                    }
-                }
-
-                if (!File.Exists(conanBuildInfoFilePath))
-                {
-                    throw new LateralusError($@"Conan didn't produce a {conanBuildInfoFileName}");
-                }
-            }
-            catch
-            {
-                throw;
-            }
-            finally
-            {
-                string changedcwd = Directory.GetCurrentDirectory();
-                Directory.SetCurrentDirectory(cwd);
-            }
+            return sb.ToString();
         }
 
         private delegate string SettingProvider(Configuration conf, Target target);
-
         private static string GetConanSettingArch(Configuration conf, Target target)
         {
             const string var = "arch";

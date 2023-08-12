@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using System.Runtime.Intrinsics.X86;
 
 namespace Lateralus
 {
@@ -65,12 +64,17 @@ namespace Lateralus
                 if (hasImgui)
                 {
                     conf.Defines.Add($@"IMGUI_USER_CONFIG=""{GetCurrentCallingFileInfo().DirectoryName}\..\..\Engine\Platform\Private\imconfig.h""");
-                    ThirdParty.ReferenceExternal(conf, target, new[] {
-                        ThirdParty.ExternalProject.freetype,
-                        ThirdParty.ExternalProject.libpng,
-                        ThirdParty.ExternalProject.brotli,
-                        ThirdParty.ExternalProject.bzip2,
-                        ThirdParty.ExternalProject.zlib
+
+                    Conan.AddExternalDependencies(conf, target, this, new ConanDependencies()
+                    {
+                        Requires = new[]
+                        {
+                            "freetype/2.12.1"
+                        },
+                        Options = new[]
+                        {
+                            "freetype:with_png=True"
+                        }
                     });
 
                     conf.AddPublicDependency<ImguiProject>(target, DependencySetting.Default);
@@ -78,9 +82,12 @@ namespace Lateralus
             }
 
             conf.Defines.Add("SPDLOG_ACTIVE_LEVEL=0");
-            ThirdParty.ReferenceExternal(conf, target, new[] {
-                ThirdParty.ExternalProject.spdlog,
-                ThirdParty.ExternalProject.fmt
+            Conan.AddExternalDependencies(conf, target, this, new ConanDependencies()
+            {
+                Requires = new[]
+                {
+                    "spdlog/[>=1.4.1]"
+                }
             });
         }
 
@@ -96,7 +103,7 @@ namespace Lateralus
                 {
                     stackFrame = stackTrace.GetFrame(i + depth);
                     string filename = stackFrame.GetFileName();
-                    if(string.IsNullOrEmpty(filename))
+                    if (string.IsNullOrEmpty(filename))
                     {
                         throw new LateralusError($@"Is {Name} missing ConfigureAll? error in Lateralus.ApplicationProject.GetCurrentCallingFileInfo()");
                     }
