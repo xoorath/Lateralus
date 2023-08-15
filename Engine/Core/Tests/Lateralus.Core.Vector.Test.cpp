@@ -202,6 +202,11 @@ TEST(Core_Vector, Vector3)
         Vector3 a(1.0f, 0.0f, 0.0f), b(0.0f, 1.0f, 0.0f);
         EXPECT_TRUE(a.Cross(b).RoughlyEquals(Vector3(0.0f, 0.0f, 1.0f)));
     }
+
+    {
+        Vector3 a(0.0f, 0.0f, -1.0f), b(0.0f, 1.0f, 0.0f);
+        EXPECT_TRUE(a.Cross(b).RoughlyEquals(Vector3(1.0f, 0.0f, 0.0f)));
+    }
 }
 
 TEST(Core_Vector, Vector4)

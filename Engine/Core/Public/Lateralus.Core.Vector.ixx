@@ -102,7 +102,10 @@ namespace Lateralus::Core
             return ((*this) * o).Sum();
         }
         Vector3 Cross(Vector3 const &o) const {
-            return Vector3(y * o.z - z * y, z * o.x - x * z, x * o.y - y * x);
+            return Vector3(
+            y * o.z - z * o.y,
+            z * o.x - x * o.z,
+            x * o.y - y * o.x);
         }
 
         float x = 0.0f;
@@ -160,7 +163,6 @@ namespace Lateralus::Core
         }
         float Sum() const { return x + y + z + w; }
         float Dot(Vector4 const &o) const { return ((*this) * o).Sum(); }
-
 
         float x = 0.0f;
         float y = 0.0f;

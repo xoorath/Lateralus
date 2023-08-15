@@ -1,3 +1,6 @@
+#include <Core.Assert.h>
+#include <Core.Log.h>
+
 #if ENABLE_IMGUI
 #include "imgui.h"
 #endif
@@ -14,8 +17,6 @@
 
 // Include glfw3.h after our OpenGL definitions
 #include <GLFW/glfw3.h>
-
-#include <Core.Log.h>
 
 #include "spdlog/spdlog.h"
 
@@ -47,7 +48,7 @@ std::string ReadFileToMemory(const std::string &filename)
     }
     catch (std::ifstream::failure e)
     {
-        // LATERALUS_LOG("Error reading Shader File!");
+        LAT_ASSERT_MSG(false, "Error reading Shader File! ({})", e.code().message());
     }
     return file_stream.str();
 }
