@@ -2,8 +2,10 @@ using Sharpmake;
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
+
+using Optimization = Lateralus.Optimization;
+using Compiler = Lateralus.Compiler;
 
 namespace Lateralus
 {
@@ -34,7 +36,7 @@ namespace Lateralus
             SourceFilesExcludeRegex.Add($@"\\Tests\\");
         }
 
-        public override void ConfigureAll(Configuration conf, Target target)
+        public override void ConfigureAll(Configuration conf, GameTarget target)
         {
             base.ConfigureAll(conf, target);
 
@@ -78,36 +80,25 @@ namespace Lateralus
             {
                 Func<bool, int> btoi = (bool b) => b ? 1 : 0;
                 bool hasImgui = !target.Optimization.HasFlag(Optimization.Retail);
+                var platform = target.GetPlatform();
 
                 bool isDesktop =
-                    target.Platform.HasFlag(Platform.win64)
-                    || target.Platform.HasFlag(Platform.win32)
-                    || target.Platform.HasFlag(Platform.mac)
-                    || target.Platform.HasFlag(Platform.linux);
+                    platform.HasFlag(Platform.win64)
+                    || platform.HasFlag(Platform.win32)
+                    || platform.HasFlag(Platform.mac)
+                    || platform.HasFlag(Platform.linux);
 
                 conf.Defines.Add(new[] {
-                    $@"ENABLE_GLFW={btoi(isDesktop)}",
-                    $@"ENABLE_IMGUI={btoi(hasImgui)}"
+                    $@"ENABLE_GLFW={btoi(isDesktop)}"
                 });
 
                 if (hasImgui)
                 {
-                    int lineNumber;
-                    conf.Defines.Add($@"IMGUI_USER_CONFIG=""{GetCurrentCallingFileInfo(out lineNumber).DirectoryName}\..\Platform\Private\imconfig.h""");
-
-                    Conan.AddExternalDependencies(conf, target, this, new ConanDependencies()
-                    {
-                        Requires = new[]
-                        {
-                            "freetype/2.12.1"
-                        },
-                        Options = new[]
-                        {
-                            "freetype:with_png=True"
-                        }
-                    });
-
-                    conf.AddPublicDependency<ImguiProject>(target, DependencySetting.Default);
+                    base.AddImguiDependency(conf, target);
+                }
+                else
+                {
+                    conf.Defines.Add($@"ENABLE_IMGUI=0");
                 }
             }
 

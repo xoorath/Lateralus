@@ -5,9 +5,11 @@
 - The [conan](https://conan.io/downloads.html) package manager.
     - **Tested with 1.54.0**
 - [Visual Studio 2022](https://visualstudio.microsoft.com/vs/)
-    - **Tested with 17.3.6**
+    - **Tested with 17.7.0**
     - .NET desktop development
     - Desktop development with C++
+    - C++ Clang Compiler for Windows (16.0.5)
+    - MSBuild support for LLVM (clang-cl) toolset
 - Powershell version 5 or newer
     - **Tested with 5.1.19041.1682**
 - Cmake

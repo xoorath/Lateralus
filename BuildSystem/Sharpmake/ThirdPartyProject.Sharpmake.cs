@@ -20,7 +20,7 @@ namespace Lateralus
             SourceRootPath = Path.Combine(projectFileDirectory, thirdPartyDirectory);
         }
 
-        public override void ConfigureAll(Configuration conf, Target target)
+        public override void ConfigureAll(Configuration conf, GameTarget target)
         {
             base.ConfigureAll(conf, target);
 

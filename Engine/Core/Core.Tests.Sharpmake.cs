@@ -12,7 +12,7 @@ namespace Lateralus
         {
         }
 
-        public override void ConfigureAll(Configuration conf, Target target)
+        public override void ConfigureAll(Configuration conf, GameTarget target)
         {
             base.ConfigureAll(conf, target);
         }

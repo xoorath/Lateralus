@@ -12,22 +12,21 @@ namespace Lateralus
         {
         }
 
-        public override void ConfigureAll(Configuration conf, Target target)
+        public override void ConfigureAll(Configuration conf, GameTarget target)
         {
             base.ConfigureAll(conf, target);
 
-            if(target.Platform.HasAnyFlag(Platform.win32 | Platform.win64 | Platform.linux | Platform.mac))
+            if(target.GetPlatform().HasAnyFlag(Platform.win32 | Platform.win64 | Platform.linux | Platform.mac))
             {
                 ConfigurePC(conf, target);
             }
             else
             {
-                throw new LateralusError($@"Unsupported platform {target.Platform}");
+                throw new LateralusError($@"Unsupported platform {target.GetPlatform()}");
             }
-
         }
 
-        private void ConfigurePC(Configuration conf, Target target)
+        private void ConfigurePC(Configuration conf, GameTarget target)
         {
             Conan.AddExternalDependencies(conf, target, this, new ConanDependencies() { 
                 Requires = new[]

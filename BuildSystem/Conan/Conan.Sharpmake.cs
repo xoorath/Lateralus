@@ -2,12 +2,10 @@ using Sharpmake;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
-using System.Text.Json;
 
-
+using Optimization = Lateralus.Optimization;
+using Compiler = Lateralus.Compiler;
 
 namespace Lateralus
 {
@@ -17,7 +15,7 @@ namespace Lateralus
         private static object s_Lock = new object();
         private static Dictionary<string, ConanBuildInfo> s_BuildInfoCache = new Dictionary<string, ConanBuildInfo>();
 
-        public static void AddExternalDependencies(Project.Configuration conf, Target target, Project project, ConanDependencies dependencies)
+        public static void AddExternalDependencies(Project.Configuration conf, GameTarget target, Project project, ConanDependencies dependencies)
         {
             string conanGeneratedDir, conanfilePath, conanBuildInfoFilePath;
             GetPaths(conf, target, project, 
@@ -109,7 +107,7 @@ namespace Lateralus
             }
         }
 
-        private static void GetPaths(Project.Configuration conf, Target target, Project project,
+        private static void GetPaths(Project.Configuration conf, GameTarget target, Project project,
             out string conanGeneratedDir,
             out string conanfilePath,
             out string conanBuildInfoFilePath)
@@ -142,7 +140,7 @@ namespace Lateralus
             conanBuildInfoFilePath = Path.GetFullPath(Path.Combine(conanGeneratedDir, conanBuildInfoFileName));
         }
 
-        private static string GetSettingsArguments(Project.Configuration conf, Target target)
+        private static string GetSettingsArguments(Project.Configuration conf, GameTarget target)
         {
             StringBuilder sb = new StringBuilder();
             foreach (SettingProvider settingProvider in new SettingProvider[] {
@@ -164,11 +162,11 @@ namespace Lateralus
             return sb.ToString();
         }
 
-        private delegate string SettingProvider(Configuration conf, Target target);
-        private static string GetConanSettingArch(Configuration conf, Target target)
+        private delegate string SettingProvider(Configuration conf, GameTarget target);
+        private static string GetConanSettingArch(Configuration conf, GameTarget target)
         {
             const string var = "arch";
-            switch (target.Platform)
+            switch (target.GetPlatform())
             {
                 case Platform.win32: return $@"{var}=x86";
                 case Platform.win64: return $@"{var}=x86_64";
@@ -177,7 +175,7 @@ namespace Lateralus
             };
         }
 
-        private static string GetConanSettingBuildType(Configuration conf, Target target)
+        private static string GetConanSettingBuildType(Configuration conf, GameTarget target)
         {
             const string var = "compiler";
             if (target.Optimization.HasAnyFlag(Optimization.Debug))
@@ -187,7 +185,7 @@ namespace Lateralus
             return $@"{var}=Release";
         }
 
-        private static string GetConanSettingCompiler(Configuration conf, Target target)
+        private static string GetConanSettingCompiler(Configuration conf, GameTarget target)
         {
             const string var = "compiler";
             if (target.DevEnv.HasAnyFlag(DevEnv.VisualStudio))
@@ -197,7 +195,7 @@ namespace Lateralus
             throw new LateralusError($@"Sharpmake compiler not yet mapped to conan {var} for target {target.Name}.");
         }
 
-        private static string GetConanSettingRuntime(Configuration conf, Target target)
+        private static string GetConanSettingRuntime(Configuration conf, GameTarget target)
         {
             const string var = "compiler.runtime";
             if (conf.Options.Contains(Options.Vc.Compiler.RuntimeLibrary.MultiThreaded))
@@ -226,15 +224,15 @@ namespace Lateralus
             }
         }
 
-        private static string GetConanSettingOS(Configuration conf, Target target)
+        private static string GetConanSettingOS(Configuration conf, GameTarget target)
         {
             const string var = "os";
-            switch (target.Platform)
+            switch (target.GetPlatform())
             {
                 case Platform.win32: return $@"{var}=Windows";
                 case Platform.win64: return $@"{var}=Windows";
             }
-            throw new LateralusError($@"Sharpmake platform '{target.Platform.ToString()}' not yet mapped to conan {var} for target {target.Name}.");
+            throw new LateralusError($@"Sharpmake platform '{target.GetPlatform().ToString()}' not yet mapped to conan {var} for target {target.Name}.");
         }
     }
 }

@@ -9,15 +9,14 @@ namespace Lateralus
 public class LateralusSolution : Solution
 {
     public LateralusSolution()
+        : base(typeof(GameTarget))
     {
         Name = "Lateralus";
-
-        AddTargets(new Target(Platform.win64, DevEnv.vs2022,
-                              Optimization.Debug | Optimization.Release | Optimization.Retail));
+        AddTargets(new GameTarget());
     }
 
     [Configure()]
-    public void ConfigureAll(Configuration conf, Target target)
+    public void ConfigureAll(Configuration conf, GameTarget target)
     {
         conf.SolutionFileName = "[solution.Name]_[target.DevEnv]_[target.Platform]";
         conf.SolutionPath = @"[solution.SharpmakeCsPath]\..\..\generated";

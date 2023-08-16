@@ -471,5 +471,4 @@ TEST(Matrix4x4Test, CreateLookAt)
     ASSERT_NEAR(lookAtMatrix.r3.w, expectedLookAtMatrix.r3.w, 1e-5);
 }
 
-
 } // namespace Lateralus::Core::Tests
