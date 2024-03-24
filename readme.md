@@ -1,6 +1,19 @@
 [![Build and Package](https://github.com/xoorath/Lateralus/actions/workflows/main.yml/badge.svg)](https://github.com/xoorath/Lateralus/actions/workflows/main.yml)
 
-# Prerequisites
+# Project Status
+
+**Focus: First Light**
+* Build on supported platforms
+* Render imgui
+    * Support emojis
+* Handle input
+* Play sounds
+
+**Issues:**
+
+Currently the build system is very sensitive to visual studio version changes causing the build to fail if exact versions are not used.
+
+# Windows Build - Prerequisites
 
 - The [conan](https://conan.io/downloads.html) package manager.
     - **Tested with 1.54.0**
